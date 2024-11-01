@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      * {
+        font-family: 'Inter', serif;
+      }
+
+      html {
+        background-color: #212529;
+      }
+    </style>
+    <title>Genius Lab</title>
+  </head>
+  <body>
+    <header
+      class="w-full h-20 flex items-center justify-center top-0 fixed z-10 bg-[#191C1F]"
+    >
+      <nav class="w-4/5 flex justify-between">
+        <div class="flex gap-2 justify-center items-center">
+          <div
+            class="w-10 h-10 flex items-center justify-center rounded-full bg-violet-500 text-white"
+          >
+            <p class="text-2xl font-bold">{{ icon }}</p>
+          </div>
+          <p class="text-white font-semibold text-xl">
+            {{ user.complete_name }}
+          </p>
+        </div>
+        <form action="{% url 'home' %}" method="post">
+          {% csrf_token %}
+          <button
+            class="rounded-md px-4 py-2 bg-violet-500 text-white font-semibold"
+            type="submit"
+          >
+            Home
+          </button>
+        </form>
+      </nav>
+    </header>
+    <main class="w-full h-auto flex flex-col justify-center items-center gap-4">
+      <section class="w-4/5 mt-32 flex flex-col gap-6">
+        <h3>Relatório de Eprestimos</h3>
+      </section>
+    </main>
+  </body>
+</html>
