@@ -11,13 +11,14 @@ from .views import (
     regist_user,
     regist_devolution, loans_relatory
 )
-from .viewsets import LoginViewset, UserViewSet
+from .viewsets import LoginViewset, UserViewSet, AddressViewSet
 
 router = DefaultRouter()
 
 # Registrando rotas
 router.register("users", UserViewSet)
 router.register("login", LoginViewset, basename="login")
+router.register("address", AddressViewSet, basename="address")
 
 urlpatterns = [
     path("api/", include(router.urls)),

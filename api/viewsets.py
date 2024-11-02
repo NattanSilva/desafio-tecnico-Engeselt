@@ -4,9 +4,9 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .models import User
+from .models import User, Address
 from .permissions import IsAdminOrReadOnly
-from .serializers import UserSerializer
+from .serializers import UserSerializer, AddressSerializer
 
 
 # Create your views here.
@@ -24,3 +24,10 @@ class LoginViewset(ViewSet):
         view = TokenObtainPairView.as_view()
 
         return view(request._request, *args, **kwargs)
+
+
+class AddressViewSet(ModelViewSet):
+    queryset = Address.objects.all()
+    serializer_class = AddressSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminOrReadOnly]
