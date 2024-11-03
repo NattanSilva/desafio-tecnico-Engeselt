@@ -5,8 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from rest_framework.serializers import ValidationError
 
-from .models import User
-from .serializers import AddressSerializer, UserSerializer, BookSerializer
+from .models import Book, User
+from .serializers import AddressSerializer, BookSerializer, UserSerializer
 from .utils import (
     get_user_from_email,
     validate_address_camps,
@@ -300,8 +300,6 @@ def regist_book(request):
                 request.session["mensagem"] = e.detail
                 return redirect("error")
 
-        
-
     return render(
         request,
         "regist_book.html",
@@ -320,12 +318,30 @@ def inactive_book(request):
     if not request.user.is_superuser:
         return redirect("/home")
 
+    books_queryset = Book.objects.filter(available_quantity__gt=0, is_active=True)
+
+    book_serializer = BookSerializer(data=books_queryset, many=True)
+    book_serializer.is_valid()
+
+    active_books = book_serializer.data
+
+    if request.method == "POST":
+        book_id = request.POST.get("books_ids_list")
+
+        book = Book.objects.get(id=book_id)
+        book.is_active = False
+        book.save()
+
+        request.session["mensagem"] = "Livro Inativado com Sucesso!"
+        return redirect("success")
+
     return render(
         request,
         "deactivate_book.html",
         {
             "user": get_user_from_email(request.user),
             "icon": get_user_from_email(request.user)["complete_name"][0],
+            "active_books_list": active_books,
         },
     )
 
