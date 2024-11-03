@@ -6,8 +6,13 @@ from django.shortcuts import redirect, render
 from rest_framework.serializers import ValidationError
 
 from .models import User
-from .serializers import AddressSerializer, UserSerializer
-from .utils import get_user_from_email, validate_address_camps, validate_email_exists
+from .serializers import AddressSerializer, UserSerializer, BookSerializer
+from .utils import (
+    get_user_from_email,
+    validate_address_camps,
+    validate_book_camps,
+    validate_email_exists,
+)
 
 
 # Create your views here.
@@ -224,6 +229,78 @@ def regist_book(request):
 
     if not request.user.is_superuser:
         return redirect("/home")
+
+    if request.method == "POST":
+        # Buscandao dados para o registro do novo livro
+        title = request.POST.get("title")
+        author = request.POST.get("author")
+        isbn = request.POST.get("isbn")
+        editor = request.POST.get("editor")
+        year_publication = request.POST.get("year_publication")
+        gender = request.POST.get("gender")
+        total_quantity = request.POST.get("total_quantity")
+        available_quantity = request.POST.get("available_quantity")
+        description = request.POST.get("description")
+
+        book_camps_validation = validate_book_camps(
+            title,
+            author,
+            isbn,
+            editor,
+            year_publication,
+            total_quantity,
+            available_quantity,
+        )
+
+        print(book_camps_validation)
+
+        if not book_camps_validation["status"]:
+
+            return render(
+                request,
+                "regist_book.html",
+                {
+                    "user": get_user_from_email(request.user),
+                    "icon": get_user_from_email(request.user)["complete_name"][0],
+                    "saved_data": {
+                        "title": title,
+                        "author": author,
+                        "isbn": isbn,
+                        "editor": editor,
+                        "year_publication": year_publication,
+                        "gender": gender,
+                        "total_quantity": total_quantity,
+                        "available_quantity": available_quantity,
+                        "description": description,
+                    },
+                    "error": book_camps_validation["error"],
+                },
+            )
+        else:
+            try:
+                book_serializer = BookSerializer(
+                    data={
+                        "title": title,
+                        "author": author,
+                        "isbn": isbn,
+                        "editor": editor,
+                        "year_publication": year_publication,
+                        "gender": gender,
+                        "total_quantity": total_quantity,
+                        "available_quantity": available_quantity,
+                        "description": description,
+                    }
+                )
+                book_serializer.is_valid(raise_exception=True)
+                book_serializer.save()
+
+                request.session["mensagem"] = "Novo Livro Cadastrado com Sucesso!"
+                return redirect("success")
+            except ValidationError as e:
+                request.session["mensagem"] = e.detail
+                return redirect("error")
+
+        
 
     return render(
         request,

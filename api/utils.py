@@ -56,3 +56,51 @@ def validate_address_camps(
             response["status"] = True
 
         return response
+
+
+def validate_book_camps(
+    title: str,
+    author: str,
+    isbn: str,
+    editor: str,
+    year_publication: str,
+    total_quantity: str,
+    available_quantity: str,
+):
+
+    response = {"status": True, "error": {}}
+
+    if int(total_quantity) <= 0:
+        response["error"][
+            "total_quantity"
+        ] = "*O campo quantidade total deve ser maior que zero!*"
+        response["status"] = False
+    if int(available_quantity) < 0:
+        response["error"][
+            "available_quantity"
+        ] = "*O campo quantidade disponivel deve ser maior que zero!*"
+        response["status"] = False
+    if int(available_quantity) > int(total_quantity):
+        response["error"][
+            "available_quantity"
+        ] = "*O campo quantidade disponivel não pode ser maior que a quantidade total!*"
+        response["status"] = False
+    if title is None or title == "":
+        response["error"]["title"] = "*O campo titulo é obrigatório!*"
+        response["status"] = False
+    if author is None or author == "":
+        response["error"]["author"] = "*O campo autor é obrigatório!*"
+        response["status"] = False
+    if isbn is None or isbn == "":
+        response["error"]["isbn"] = "*O campo isbn é obrigatório!*"
+        response["status"] = False
+    if editor is None or editor == "":
+        response["error"]["editor"] = "*O campo editora é obrigatório!*"
+        response["status"] = False
+    if int(year_publication) < 0:
+        response["error"][
+            "year_publication"
+        ] = "*O campo ano de publicação deve ser maior que zero!*"
+        response["status"] = False
+
+    return response
