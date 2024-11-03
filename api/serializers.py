@@ -1,7 +1,7 @@
 from django.core.validators import MinLengthValidator
 from rest_framework import serializers
 
-from .models import User
+from .models import User, Address
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -41,3 +41,21 @@ class UserSerializer(serializers.ModelSerializer):
             return User.objects.create_user(
                 **validated_data, username=validated_data["email"]
             )
+
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = [
+            "id",
+            "cep",
+            "state",
+            "city",
+            "district",
+            "street",
+            "number",
+            "complement",
+            "created_at",
+            "updated_at",
+            "owner",
+        ]

@@ -33,3 +33,20 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.email}"
+    
+class Address(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    cep = models.CharField(max_length=10)
+    state = models.CharField(max_length=2)
+    city = models.CharField(max_length=180)
+    district = models.CharField(max_length=180)
+    street = models.CharField(max_length=180)
+    number = models.CharField(max_length=10)
+    complement = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="address")
+
+    def __str__(self):
+        return f"{self.id}"
