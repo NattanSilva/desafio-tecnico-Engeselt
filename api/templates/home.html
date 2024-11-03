@@ -52,18 +52,23 @@
       {% if user.account_type == "leitor"  %}
         <section class="w-4/5 mt-32 flex flex-col gap-6">
           <section class="w-full flex flex-col gap-4">
-            <ul class="w-full flex items-center justify-center gap-2">
+            <ul class="w-full flex items-center justify-center flex-wrap gap-2">
               <li class="w-3/5">
                 <form
                   action=""
+                  method="post"
                   class="w-full h-10 flex items-center justify-between px-2 bg-white rounded-md"
                 >
+                  {% csrf_token %}
                   <input
                     class="w-4/5 h-full border-0 bg-transparent outline-none"
                     type="text"
                     name="search_book_name"
                     id="search_book_name"
                     placeholder="Pesquise pelo nome do livro"
+                    {% if saved_data.search_book_name is not None %}
+                      value="{{ saved_data.search_book_name }}"
+                    {% endif %}
                   />
                   <button class="h-4/5 bg-violet-500 text-white px-2 rounded-md">
                     Pesquisar
@@ -77,36 +82,45 @@
                   Ver Histórico de Emprestimos
                 </button>
               </li>
+              <li class="w-4/5 flex items-center">
+                <span
+                  class="max-w-max h-full ml-12 text-gray-400 text-sm"
+                >
+                  *Para resetar a busca basta pesquisar com o campo de texto vazio.*
+                </span>
+              </li>
             </ul>
             <div class="w-full flex flex-col gap-4">
-              <h3 class="text-white font-bold text-2xl">
-                Livros Disponíveis para emprestimo
+              <h3 class="text-blue-500 mt-10 font-bold text-3xl">
+                📚 Livros Disponíveis para emprestimo
               </h3>
-              <ul class="w-full flex justify-around flex-wrap">
-                {% for item in items %}
-                  <li
-                    id="{{ i }}"
-                    class="w-[32%] flex flex-col gap-2 mb-4 bg-[#191C1F] rounded-md p-4 text-white"
-                  >
-                    <p>Nome: Nome do Livro</p>
-                    <p>Autor: teste</p>
-                    <p>Editora: testando</p>
-                    <p>Quantidade: 20</p>
-                    <p>
-                      Disponibilidade:
-                      <span class="text-green-500">Disponivel</span>
-                    </p>
-                    <button
-                      class="h-10 bg-[#4C6EF5] text-white font-semibold rounded-sm transition-colors hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
-                      {% if False %}
-                        disabled
-                      {% endif %}
+              {% if items in None or items|length <= 0 %}
+                <div class="w-full h-40 flex items-center justify-center">
+                  <span class="text-xl text-white font-semibold">Nenhum livro registrado ou ativo no momento...<span>
+                </div>
+              {% else %}
+                <ul class="w-full flex justify-around flex-wrap">
+                  {% for item in items %}
+                    <li
+                      id="{{ i }}"
+                      class="w-[32%] flex flex-col gap-2 mb-4 bg-[#191C1F] rounded-md p-4 text-white"
                     >
-                      Solicitar emprestimo
-                    </button>
-                  </li>
-                {% endfor %}
-              </ul>
+                      <p class="text-ellipsis">Nome: {{ item.title }}</p>
+                      <p class="text-ellipsis">Autor:  {{ item.author }}</p>
+                      <p class="text-ellipsis">Editora:  {{ item.editor }}</p>
+                      <p class="text-ellipsis">Quantidade:  {{ item.available_quantity }}</p>
+                      <button
+                        class="h-10 bg-[#4C6EF5] mt-2 text-white font-semibold rounded-sm transition-colors hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
+                        {% if False %}
+                          disabled
+                        {% endif %}
+                      >
+                        Solicitar emprestimo
+                      </button>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
             </div>
           </section>
         </section>

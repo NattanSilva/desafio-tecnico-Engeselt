@@ -5,9 +5,15 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from rest_framework.serializers import ValidationError
 
-from .models import User
-from .serializers import AddressSerializer, UserSerializer
-from .utils import get_user_from_email, validate_address_camps, validate_email_exists
+from .models import Book, User
+from .serializers import AddressSerializer, BookSerializer, UserSerializer
+from .utils import (
+    get_book_by_title,
+    get_user_from_email,
+    validate_address_camps,
+    validate_book_camps,
+    validate_email_exists,
+)
 
 
 # Create your views here.
@@ -44,7 +50,54 @@ def home(request):
     if not request.user.is_authenticated:
         return redirect("/")
 
-    print(request.user)
+    user = get_user_from_email(request.user)
+
+    if user["account_type"] == "leitor":
+        active_books = Book.objects.filter(available_quantity__gt=0, is_active=True)
+        book_serializer = BookSerializer(data=active_books, many=True)
+        book_serializer.is_valid()
+
+        books_list = book_serializer.data
+
+        if request.method == "POST":
+            book_name = request.POST.get("search_book_name")
+
+            book = get_book_by_title(book_name)
+
+            if book is not None:
+                return render(
+                    request,
+                    "home.html",
+                    {
+                        "user": get_user_from_email(request.user),
+                        "icon": get_user_from_email(request.user)["complete_name"][0],
+                        "items": [book],
+                        "saved_data": {"search_book_name": book_name},
+                        "reset_button": True,
+                    },
+                )
+            else:
+                return render(
+                    request,
+                    "home.html",
+                    {
+                        "user": get_user_from_email(request.user),
+                        "icon": get_user_from_email(request.user)["complete_name"][0],
+                        "items": [],
+                        "saved_data": {"search_book_name": book_name},
+                        "reset_button": True,
+                    },
+                )
+
+        return render(
+            request,
+            "home.html",
+            {
+                "user": get_user_from_email(request.user),
+                "icon": get_user_from_email(request.user)["complete_name"][0],
+                "items": books_list,
+            },
+        )
 
     return render(
         request,
@@ -52,7 +105,6 @@ def home(request):
         {
             "user": get_user_from_email(request.user),
             "icon": get_user_from_email(request.user)["complete_name"][0],
-            "items": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         },
     )
 
@@ -225,6 +277,76 @@ def regist_book(request):
     if not request.user.is_superuser:
         return redirect("/home")
 
+    if request.method == "POST":
+        # Buscandao dados para o registro do novo livro
+        title = request.POST.get("title")
+        author = request.POST.get("author")
+        isbn = request.POST.get("isbn")
+        editor = request.POST.get("editor")
+        year_publication = request.POST.get("year_publication")
+        gender = request.POST.get("gender")
+        total_quantity = request.POST.get("total_quantity")
+        available_quantity = request.POST.get("available_quantity")
+        description = request.POST.get("description")
+
+        book_camps_validation = validate_book_camps(
+            title,
+            author,
+            isbn,
+            editor,
+            year_publication,
+            total_quantity,
+            available_quantity,
+        )
+
+        print(book_camps_validation)
+
+        if not book_camps_validation["status"]:
+
+            return render(
+                request,
+                "regist_book.html",
+                {
+                    "user": get_user_from_email(request.user),
+                    "icon": get_user_from_email(request.user)["complete_name"][0],
+                    "saved_data": {
+                        "title": title,
+                        "author": author,
+                        "isbn": isbn,
+                        "editor": editor,
+                        "year_publication": year_publication,
+                        "gender": gender,
+                        "total_quantity": total_quantity,
+                        "available_quantity": available_quantity,
+                        "description": description,
+                    },
+                    "error": book_camps_validation["error"],
+                },
+            )
+        else:
+            try:
+                book_serializer = BookSerializer(
+                    data={
+                        "title": title,
+                        "author": author,
+                        "isbn": isbn,
+                        "editor": editor,
+                        "year_publication": year_publication,
+                        "gender": gender,
+                        "total_quantity": total_quantity,
+                        "available_quantity": available_quantity,
+                        "description": description,
+                    }
+                )
+                book_serializer.is_valid(raise_exception=True)
+                book_serializer.save()
+
+                request.session["mensagem"] = "Novo Livro Cadastrado com Sucesso!"
+                return redirect("success")
+            except ValidationError as e:
+                request.session["mensagem"] = e.detail
+                return redirect("error")
+
     return render(
         request,
         "regist_book.html",
@@ -243,12 +365,30 @@ def inactive_book(request):
     if not request.user.is_superuser:
         return redirect("/home")
 
+    books_queryset = Book.objects.filter(available_quantity__gt=0, is_active=True)
+
+    book_serializer = BookSerializer(data=books_queryset, many=True)
+    book_serializer.is_valid()
+
+    active_books = book_serializer.data
+
+    if request.method == "POST":
+        book_id = request.POST.get("books_ids_list")
+
+        book = Book.objects.get(id=book_id)
+        book.is_active = False
+        book.save()
+
+        request.session["mensagem"] = "Livro Inativado com Sucesso!"
+        return redirect("success")
+
     return render(
         request,
         "deactivate_book.html",
         {
             "user": get_user_from_email(request.user),
             "icon": get_user_from_email(request.user)["complete_name"][0],
+            "active_books_list": active_books,
         },
     )
 

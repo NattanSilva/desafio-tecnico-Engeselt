@@ -11,6 +11,20 @@ class UserAccountTypes(models.TextChoices):
     LEITOR = "leitor"
 
 
+class BookGender(models.TextChoices):
+    FANTASIA = "Fantasia"
+    FICÇÃO_CIENTÍFICA = "Ficção Científica"
+    MISTÉRIO = "Mistério"
+    ROMANCE = "Romance"
+    SUSPENSE = "Suspense"
+    NÃO_FICÇÃO = "Não Ficção"
+    BIOGRAFIA = "Biografia"
+    HISTÓRICO = "Histórico"
+    FANTASIA_ROMÂNTICA = "Fantasia Romântica"
+    JOVEM_ADULTO = "Jovem Adulto"
+    SEM_GENERO = "Sem Genero"
+
+
 class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     complete_name = models.CharField(max_length=200)
@@ -33,7 +47,8 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.email}"
-    
+
+
 class Address(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     cep = models.CharField(max_length=10)
@@ -47,6 +62,32 @@ class Address(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="address")
+
+    def __str__(self):
+        return f"{self.id}"
+
+
+class Book(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=200, unique=True)
+    author = models.CharField(max_length=200)
+    isbn = models.CharField(max_length=13, unique=True)
+    editor = models.CharField(max_length=200)
+    year_publication = models.IntegerField()
+    gender = models.CharField(
+        max_length=200, choices=BookGender.choices, default=BookGender.SEM_GENERO
+    )
+    total_quantity = models.IntegerField(default=1)
+    available_quantity = models.IntegerField(default=0)
+    description = models.TextField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if self.available_quantity is None:
+            self.available_quantity = self.total_quantity
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.id}"
