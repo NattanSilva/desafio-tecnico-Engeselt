@@ -2,16 +2,19 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
+    error,
     gerency_loans,
     home,
     inactive_book,
+    loans_relatory,
     login,
     logout,
     regist_book,
+    regist_devolution,
     regist_user,
-    regist_devolution, loans_relatory
+    success,
 )
-from .viewsets import LoginViewset, UserViewSet, AddressViewSet
+from .viewsets import AddressViewSet, LoginViewset, UserViewSet
 
 router = DefaultRouter()
 
@@ -31,4 +34,6 @@ urlpatterns = [
     path("gerency_loans/", gerency_loans, name="gerency_loans"),
     path("regist_devolution/", regist_devolution, name="regist_devolution"),
     path("loans_relatory/", loans_relatory, name="loans_relatory"),
+    path("success/", success, name="success"),
+    path("error/", error, name="error"),
 ]

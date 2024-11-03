@@ -197,7 +197,7 @@
             {% endif %}
           </div>
           <h3 class="text-2xl text-white font-bold">Endereço(opicional)</h3>
-          <div class="w-full flex flex-col gap-2">
+          <div class="w-full flex flex-col gap-2" id="cep_box">
             <label class="text-[#ADB5BD]" for="cep">CEP</label>
             <input
               class="w-full h-12 px-2 rounded-md"
@@ -207,7 +207,14 @@
               maxlength="9"
               placeholder="XXXXX-XXX"
               oninput="mascararCEP(this)"
+              {% if saved_data.cep is not None %}
+                value="{{saved_data.cep}}"
+              {% endif %}
             />
+            {% if error.cep  %}
+              <span class="text-sm text-red-500">{{ error.cep }}</span>
+            {% endif %}
+            <span class="text-sm text-red-500 hidden" id="cep_error_span"></span>
           </div>
           <div class="w-full flex flex-col gap-2">
             <label class="text-[#ADB5BD]" for="state">Estado</label>
@@ -218,7 +225,13 @@
               name="state"
               maxlength="2"
               placeholder="PB"
+              {% if saved_data.state is not None %}
+                value="{{saved_data.state}}"
+              {% endif %}
             />
+            {% if error.state  %}
+              <span class="text-sm text-red-500">{{ error.state }}</span>
+            {% endif %}
           </div>
           <div class="w-full flex flex-col gap-2">
             <label class="text-[#ADB5BD]" for="city">Cidade</label>
@@ -228,7 +241,13 @@
               id="city"
               name="city"
               placeholder="João Pessoa"
+              {% if saved_data.city is not None %}
+                value="{{saved_data.city}}"
+              {% endif %}
             />
+            {% if error.city  %}
+              <span class="text-sm text-red-500">{{ error.city }}</span>
+            {% endif %}
           </div>
           <div class="w-full flex flex-col gap-2">
             <label class="text-[#ADB5BD]" for="district">Bairro</label>
@@ -238,7 +257,13 @@
               id="district"
               name="district"
               placeholder="Funcinarios"
+              {% if saved_data.district is not None %}
+                value="{{saved_data.district}}"
+              {% endif %}
             />
+            {% if error.district  %}
+              <span class="text-sm text-red-500">{{ error.district }}</span>
+            {% endif %}
           </div>
           <div class="w-full flex flex-col gap-2">
             <label class="text-[#ADB5BD]" for="street">Rua</label>
@@ -248,7 +273,13 @@
               id="street"
               name="street"
               placeholder="Rua das Dores"
+              {% if saved_data.street is not None %}
+                value="{{saved_data.street}}"
+              {% endif %}
             />
+            {% if error.street  %}
+              <span class="text-sm text-red-500">{{ error.street }}</span>
+            {% endif %}
           </div>
 
           <div class="w-full flex flex-col gap-2">
@@ -260,7 +291,13 @@
               id="number"
               name="number"
               placeholder="123"
+              {% if saved_data.number is not None %}
+                value="{{saved_data.number}}"
+              {% endif %}
             />
+            {% if error.number  %}
+              <span class="text-sm text-red-500">{{ error.number }}</span>
+            {% endif %}
           </div>
           <div class="w-full flex flex-col gap-2">
             <label class="text-[#ADB5BD]" for="complement">Complemento</label>
@@ -270,6 +307,9 @@
               id="complement"
               name="complement"
               placeholder="Apartamento, casa, etc."
+              {% if saved_data.complement is not None %}
+                value="{{saved_data.complement}}"
+              {% endif %}
             />
           </div>
 
@@ -286,7 +326,15 @@
       let show_password_btn = document.getElementById('show_password_btn')
       let show_confirm_password_btn = document.getElementById('show_confirm_password_btn')
       let password_input = document.getElementById('password')
-      let confirm_password_input = document.getElementById('confirm_password') 
+      let confirm_password_input = document.getElementById('confirm_password')
+      
+
+      // Addres inputs
+      let cep_box = document.getElementById('cep_box')
+      let state_input = document.getElementById('state')
+      let city_input = document.getElementById('city')
+      let district_input = document.getElementById('district')
+      let street_input = document.getElementById('street')
 
       show_password_btn.addEventListener('click', (e) => {
                
@@ -313,10 +361,35 @@
         input.value = telefone
       }
 
-      function mascararCEP(input) {
+      async function mascararCEP(input) {
         let cep = input.value.replace(/\D/g, '') // Remove tudo que não é dígito
         cep = cep.replace(/(\d{5})(\d)/, '$1-$2') // Adiciona o hífen após os cinco primeiros dígitos
         input.value = cep
+
+        let errorSpan = document.getElementById('cep_error_span')
+
+        if (input.value.length === 9) {
+          // Realiza uma busca pelo cep do usuário no site do viacep
+          let response = await fetch(`https://viacep.com.br/ws/${input.value.replace("-", "")}/json/`)
+
+          let data = await response.json()
+
+          console.log(data)
+
+          if(data.erro === false || data.erro === undefined) {
+            state_input.value = data.uf
+            city_input.value = data.localidade
+            district_input.value = data.bairro
+            street_input.value = data.logradouro
+            
+          }else {
+            errorSpan.classList.remove("hidden")
+            errorSpan.innerText = '*CEP inválido!*'
+          }
+        } else {
+          errorSpan.classList.add("hidden")
+          errorSpan.innerText = ''
+        }
       }
     </script>
   </body>

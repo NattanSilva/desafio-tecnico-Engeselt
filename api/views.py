@@ -6,8 +6,8 @@ from django.shortcuts import redirect, render
 from rest_framework.serializers import ValidationError
 
 from .models import User
-from .serializers import UserSerializer
-from .utils import get_user_from_email, validate_email_exists
+from .serializers import AddressSerializer, UserSerializer
+from .utils import get_user_from_email, validate_address_camps, validate_email_exists
 
 
 # Create your views here.
@@ -140,20 +140,73 @@ def regist_user(request):
                 },
             )
         else:
-            serializer = UserSerializer(
-                data={
-                    "complete_name": complate_name,
-                    "email": email,
-                    "password": password,
-                    "account_type": account_type,
-                    "phone": None if phone is None or phone == "" else phone,
-                }
+            address_validation = validate_address_camps(
+                cep, state, city, district, street, number
             )
 
-            serializer.is_valid()
-            serializer.save()
+            print(address_validation)
+            if address_validation["status"]:
+                return render(
+                    request,
+                    "regist_user.html",
+                    {
+                        "user": get_user_from_email(request.user),
+                        "icon": get_user_from_email(request.user)["complete_name"][0],
+                        "error": address_validation["error"],
+                        "saved_data": {
+                            "complete_name": complate_name,
+                            "email": email,
+                            "password": password,
+                            "confirm_password": confirm_password,
+                            "account_type": account_type,
+                            "phone": phone if phone is not None or phone != "" else "",
+                            "cep": cep,
+                            "state": state,
+                            "city": city,
+                            "district": district,
+                            "street": street,
+                            "number": number,
+                            "complement": complement,
+                        },
+                    },
+                )
+            else:
+                try:
+                    serializer = UserSerializer(
+                        data={
+                            "complete_name": complate_name,
+                            "email": email,
+                            "password": password,
+                            "account_type": account_type,
+                            "phone": None if phone is None or phone == "" else phone,
+                        }
+                    )
 
-            return redirect("home")
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+
+                    address_serializer = AddressSerializer(
+                        data={
+                            "cep": cep,
+                            "state": state,
+                            "city": city,
+                            "district": district,
+                            "street": street,
+                            "number": number,
+                            "complement": complement,
+                            "owner": serializer.data["id"],
+                        }
+                    )
+
+                    address_serializer.is_valid(raise_exception=True)
+                    address_serializer.save()
+
+                    request.session["mensagem"] = "Novo Usário Cadastrado com Sucesso!"
+                    return redirect("success")
+
+                except ValidationError as e:
+                    request.session["mensagem"] = e.detail
+                    return redirect("error")
     return render(
         request,
         "regist_user.html",
@@ -253,4 +306,38 @@ def loans_relatory(request):
         },
     )
 
-    loans_relatory
+
+@login_required
+def success(request):
+    if not request.user.is_authenticated:
+        return redirect("/")
+
+    if not request.user.is_superuser:
+        return redirect("/home")
+
+    return render(
+        request,
+        "success.html",
+        {
+            "user": get_user_from_email(request.user),
+            "icon": get_user_from_email(request.user)["complete_name"][0],
+        },
+    )
+
+
+@login_required
+def error(request):
+    if not request.user.is_authenticated:
+        return redirect("/")
+
+    if not request.user.is_superuser:
+        return redirect("/home")
+
+    return render(
+        request,
+        "error.html",
+        {
+            "user": get_user_from_email(request.user),
+            "icon": get_user_from_email(request.user)["complete_name"][0],
+        },
+    )
