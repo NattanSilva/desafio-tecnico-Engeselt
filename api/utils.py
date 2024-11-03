@@ -1,6 +1,6 @@
 from django.forms.models import model_to_dict
 
-from .models import User, Book
+from .models import User, Book, Loan
 
 
 def get_user_from_email(email: str):
@@ -112,4 +112,25 @@ def get_book_by_title(title: str):
 
         return model_to_dict(book)
     except Book.DoesNotExist:
+        return None
+
+def get_book_by_id(book_id: str):
+    try:    
+        book = Book.objects.get(id=book_id) 
+
+        return model_to_dict(book)
+    except Book.DoesNotExist:
+        return None
+
+def validate_gt_loan_date(inicial_date: str, final_date: str):
+    if str(final_date) < str(inicial_date):
+        return False
+    return True
+
+def get_loan_by_id(loan_id: str):
+    try:
+        loan = Loan.objects.get(id=loan_id)
+
+        return model_to_dict(loan)
+    except Loan.DoesNotExist:
         return None

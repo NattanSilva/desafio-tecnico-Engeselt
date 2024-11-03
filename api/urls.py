@@ -14,7 +14,7 @@ from .views import (
     regist_user,
     success,
 )
-from .viewsets import AddressViewSet, LoginViewset, UserViewSet, BookViewSet
+from .viewsets import AddressViewSet, LoginViewset, UserViewSet, BookViewSet, LoanViewSet
 
 router = DefaultRouter()
 
@@ -23,6 +23,7 @@ router.register("users", UserViewSet)
 router.register("login", LoginViewset, basename="login")
 router.register("address", AddressViewSet, basename="address")
 router.register("books", BookViewSet, basename="book")
+router.register("loans", LoanViewSet, basename="loan")
 
 urlpatterns = [
     path("api/", include(router.urls)),
