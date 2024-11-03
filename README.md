@@ -18,10 +18,16 @@ apenas melhora o acesso aos recursos educacionais, mas
 também promove um ambiente de aprendizagem mais
 organizado e eficiente.</p>
 
-### Dependências:
+<div align="center" >
+  <img src="./DER.png" alt="Diagrama de Entidade Relacional" width="90%" height="720" style="border-radius: 8px;" >
+</div
+
+<h2>Dependências do Projeto:</h2>
 
 1. <a href="https://python.org.br/instalacao-windows/" target="_blank">Python3</a>
 2. <a href="https://www.postgresql.org/download/" target="_blank">PostgreSQL</a>
+
+## Configuranado seu projeto local
 
 ### 1 - Crie seu ambiente virtual:
 

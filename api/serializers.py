@@ -1,7 +1,7 @@
 from django.core.validators import MinLengthValidator
 from rest_framework import serializers
 
-from .models import User, Address
+from .models import User, Address, Book
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -59,3 +59,33 @@ class AddressSerializer(serializers.ModelSerializer):
             "updated_at",
             "owner",
         ]
+        extra_kwargs = {
+            "id": {"read_only": True},
+            "created_at": {"read_only": True},
+            "updated_at": {"read_only": True},
+        }
+
+
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = [
+            "id",
+            "title",
+            "author",
+            "isbn",
+            "editor",
+            "year_publication",
+            "gender",
+            "total_quantity",
+            "available_quantity",
+            "description",
+            "created_at",
+            "updated_at",
+        ]
+
+        extra_kwargs = {
+            "id": {"read_only": True},
+            "created_at": {"read_only": True},
+            "updated_at": {"read_only": True},
+        }
