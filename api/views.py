@@ -8,6 +8,7 @@ from rest_framework.serializers import ValidationError
 from .models import Book, User
 from .serializers import AddressSerializer, BookSerializer, UserSerializer
 from .utils import (
+    get_book_by_title,
     get_user_from_email,
     validate_address_camps,
     validate_book_camps,
@@ -49,7 +50,54 @@ def home(request):
     if not request.user.is_authenticated:
         return redirect("/")
 
-    print(request.user)
+    user = get_user_from_email(request.user)
+
+    if user["account_type"] == "leitor":
+        active_books = Book.objects.filter(available_quantity__gt=0, is_active=True)
+        book_serializer = BookSerializer(data=active_books, many=True)
+        book_serializer.is_valid()
+
+        books_list = book_serializer.data
+
+        if request.method == "POST":
+            book_name = request.POST.get("search_book_name")
+
+            book = get_book_by_title(book_name)
+
+            if book is not None:
+                return render(
+                    request,
+                    "home.html",
+                    {
+                        "user": get_user_from_email(request.user),
+                        "icon": get_user_from_email(request.user)["complete_name"][0],
+                        "items": [book],
+                        "saved_data": {"search_book_name": book_name},
+                        "reset_button": True,
+                    },
+                )
+            else:
+                return render(
+                    request,
+                    "home.html",
+                    {
+                        "user": get_user_from_email(request.user),
+                        "icon": get_user_from_email(request.user)["complete_name"][0],
+                        "items": [],
+                        "saved_data": {"search_book_name": book_name},
+                        "reset_button": True,
+                    },
+                )
+
+        return render(
+            request,
+            "home.html",
+            {
+                "user": get_user_from_email(request.user),
+                "icon": get_user_from_email(request.user)["complete_name"][0],
+                "items": books_list,
+            },
+        )
 
     return render(
         request,
@@ -57,7 +105,6 @@ def home(request):
         {
             "user": get_user_from_email(request.user),
             "icon": get_user_from_email(request.user)["complete_name"][0],
-            "items": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         },
     )
 

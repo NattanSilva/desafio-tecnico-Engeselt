@@ -1,6 +1,6 @@
 from django.forms.models import model_to_dict
 
-from .models import User
+from .models import User, Book
 
 
 def get_user_from_email(email: str):
@@ -104,3 +104,12 @@ def validate_book_camps(
         response["status"] = False
 
     return response
+
+
+def get_book_by_title(title: str):
+    try:
+        book = Book.objects.get(title__icontains=title)
+
+        return model_to_dict(book)
+    except Book.DoesNotExist:
+        return None
