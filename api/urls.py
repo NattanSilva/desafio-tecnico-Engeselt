@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     error,
-    gerency_loans,
+    regist_loans,
     home,
     inactive_book,
     loans_relatory,
@@ -33,7 +33,7 @@ urlpatterns = [
     path("regist_user/", regist_user, name="regist_user"),
     path("regist_book/", regist_book, name="regist_book"),
     path("inactive_book/", inactive_book, name="inactive_book"),
-    path("gerency_loans/", gerency_loans, name="gerency_loans"),
+    path("regist_loans/", regist_loans, name="regist_loans"),
     path("regist_devolution/", regist_devolution, name="regist_devolution"),
     path("loans_relatory/", loans_relatory, name="loans_relatory"),
     path("success/", success, name="success"),

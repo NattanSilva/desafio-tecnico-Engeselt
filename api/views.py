@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as django_login
 from django.contrib.auth import logout as django_logout
@@ -6,13 +8,16 @@ from django.shortcuts import redirect, render
 from rest_framework.serializers import ValidationError
 
 from .models import Book, User
-from .serializers import AddressSerializer, BookSerializer, UserSerializer
+from .serializers import AddressSerializer, BookSerializer, UserSerializer, LoanSerializer
 from .utils import (
+    get_all_active_books,
+    get_all_users,
     get_book_by_title,
     get_user_from_email,
     validate_address_camps,
     validate_book_camps,
     validate_email_exists,
+    validate_loan_regist_camps,
 )
 
 
@@ -394,19 +399,83 @@ def inactive_book(request):
 
 
 @login_required
-def gerency_loans(request):
+def regist_loans(request):
     if not request.user.is_authenticated:
         return redirect("/")
 
     if not request.user.is_superuser:
         return redirect("/home")
 
+    users = get_all_users()
+    books = get_all_active_books()
+
+    if request.method == "POST":
+        user_id = request.POST.get("users_ids")
+        book_id = request.POST.get("books_ids")
+        aproved_date = request.POST.get("aproved_date")
+        expected_devolution_date = request.POST.get("expected_devolution_date")
+        loan_status = request.POST.get("status")
+
+        formated_aproved_date = datetime.strptime(aproved_date, "%Y-%m-%d").strftime(
+            "%Y-%m-%d"
+        )
+        formated_expected_devolution_date = datetime.strptime(
+            expected_devolution_date, "%Y-%m-%d"
+        ).strftime("%Y-%m-%d")
+
+        validation_camps = validate_loan_regist_camps(
+            user_id,
+            book_id,
+            formated_aproved_date,
+            formated_expected_devolution_date,
+            loan_status,
+        )
+
+        if not validation_camps["status"]:
+            return render(
+                request,
+                "regist_loan.html",
+                {
+                    "user": get_user_from_email(request.user),
+                    "icon": get_user_from_email(request.user)["complete_name"][0],
+                    "users_list": users,
+                    "books_list": books,
+                    "saved_data": {
+                        "user_data": user_id,
+                        "book_data": book_id,
+                        "aproved_date": aproved_date,
+                        "expected_devolution_date": expected_devolution_date,
+                        "status": loan_status,
+                    },
+                    "error": validation_camps["error"],
+                },
+            )
+        else:
+            try:
+                loan_serializer = LoanSerializer(data={
+                    "user": user_id,
+                    "book": book_id,
+                    "aproved_date": formated_aproved_date,
+                    "expected_devolution_date": formated_expected_devolution_date,
+                    "status": loan_status,
+                    "devolution_date": datetime.now().strftime("%Y-%m-%d") if loan_status == "concluído" else None
+                })
+                loan_serializer.is_valid(raise_exception=True)
+                loan_serializer.save()
+                request.session["mensagem"] = "Emprestimo cadastrado com Sucesso!"
+                return redirect("success")
+            except ValidationError as e:
+                request.session["mensagem"] = e.detail
+                return redirect("error")
+
     return render(
         request,
-        "gerency_loans.html",
+        "regist_loan.html",
         {
             "user": get_user_from_email(request.user),
             "icon": get_user_from_email(request.user)["complete_name"][0],
+            "users_list": users,
+            "books_list": books,
         },
     )
 

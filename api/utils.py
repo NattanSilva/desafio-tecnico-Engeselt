@@ -1,6 +1,9 @@
+from datetime import date
+
 from django.forms.models import model_to_dict
 
-from .models import User, Book, Loan
+from .models import Book, Loan, User
+from .serializers import BookSerializer, UserSerializer
 
 
 def get_user_from_email(email: str):
@@ -114,18 +117,21 @@ def get_book_by_title(title: str):
     except Book.DoesNotExist:
         return None
 
+
 def get_book_by_id(book_id: str):
-    try:    
-        book = Book.objects.get(id=book_id) 
+    try:
+        book = Book.objects.get(id=book_id)
 
         return model_to_dict(book)
     except Book.DoesNotExist:
         return None
 
+
 def validate_gt_loan_date(inicial_date: str, final_date: str):
     if str(final_date) < str(inicial_date):
         return False
     return True
+
 
 def get_loan_by_id(loan_id: str):
     try:
@@ -134,3 +140,56 @@ def get_loan_by_id(loan_id: str):
         return model_to_dict(loan)
     except Loan.DoesNotExist:
         return None
+
+
+def get_all_users():
+    users = User.objects.all()
+    user_serializer = UserSerializer(data=users, many=True)
+    user_serializer.is_valid()
+
+    return user_serializer.data
+
+
+def get_all_active_books():
+    books = Book.objects.filter(available_quantity__gt=0, is_active=True)
+    book_serializer = BookSerializer(data=books, many=True)
+    book_serializer.is_valid()
+
+    return book_serializer.data
+
+
+def validate_loan_regist_camps(
+    user: str, book: str, aproved_date: str, expected_devolution_date: str, status: str
+):
+    response = {"status": True, "error": {}}
+
+    loans_per_user = Loan.objects.filter(user=user, book=book, status=status)
+
+    if status == "em aberto" and loans_per_user.exists():
+
+        response["error"][
+            "book"
+        ] = "*O usário ja tem um emprestimo para este livro em aberto!*"
+        response["status"] = False
+
+    if not validate_gt_loan_date(
+        date.today().strftime("%Y-%m-%d"), expected_devolution_date
+    ):
+        response["error"][
+            "expected_devolution_date"
+        ] = "*A data de devolução prevista deve ser maior que a data atual!*"
+        response["status"] = False
+
+    if not validate_gt_loan_date(aproved_date, expected_devolution_date):
+        response["error"][
+            "expected_devolution_date"
+        ] = "*A data de devolução prevista deve ser maior que a data de emprestimo!*"
+        response["status"] = False
+
+    if not validate_gt_loan_date(date.today().strftime("%Y-%m-%d"), aproved_date):
+        response["error"][
+            "aproved_date"
+        ] = "*A data de emprestimo deve ser maior ou igual a data atual!*"
+        response["status"] = False
+
+    return response
