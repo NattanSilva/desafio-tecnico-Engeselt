@@ -123,25 +123,27 @@ def get_book_by_title(title: str):
         return model_to_dict(book)
     except Book.DoesNotExist:
         return None
-    
+
+
 def get_many_books_by_title(title: str):
     result = []
 
     if title is None or title == "":
         books = Book.objects.filter(is_active=True, available_quantity__gt=0)
-        
+
         for book in books:
             result.append(model_to_dict(book))
-        
+
         return result
-    
-    books = Book.objects.filter(title__icontains=title, is_active=True, available_quantity__gt=0)
+
+    books = Book.objects.filter(
+        title__icontains=title, is_active=True, available_quantity__gt=0
+    )
 
     for book in books:
         result.append(model_to_dict(book))
-    
+
     return result
-    
 
 
 def get_book_by_id(book_id: str):
@@ -191,7 +193,7 @@ def validate_loan_regist_camps(
 
     loans_per_user = Loan.objects.filter(user=user, book=book, status=status)
 
-    if status == "em aberto" and loans_per_user.exists():
+    if (status == "em aberto" or status == "pendente") and loans_per_user.exists():
 
         response["error"][
             "book"
@@ -220,6 +222,7 @@ def validate_loan_regist_camps(
 
     return response
 
+
 def format_loans_to_tempalte(loans):
     result = []
 
@@ -240,19 +243,24 @@ def format_loans_to_tempalte(loans):
         formated_data["user_name"] = current_user.complete_name
 
         result.append(formated_data)
-    
+
     return result
+
 
 def get_loans_by_period(start_date: str, end_date: str, user: str = None):
     if user is not None and user != "":
-        loans = Loan.objects.filter(aproved_date__range=[start_date, end_date], user=user)
+        loans = Loan.objects.filter(
+            aproved_date__range=[start_date, end_date], user=user
+        )
     else:
         loans = Loan.objects.filter(aproved_date__range=[start_date, end_date])
     return format_loans_to_tempalte(loans)
 
+
 def get_oppening_loans():
     loans = Loan.objects.filter(status="em aberto")
     return format_loans_to_tempalte(loans)
+
 
 def devolution_validate_camps(loan_id: str, devolution_date: str):
     result = {"status": True, "error": {}}
@@ -266,7 +274,9 @@ def devolution_validate_camps(loan_id: str, devolution_date: str):
     loan = Loan.objects.get(id=loan_id)
 
     if not validate_gt_loan_date(loan.aproved_date, devolution_date):
-        result["error"]["devolution_date"] = "*A data de devolução deve ser maior que a data de emprestimo!*"
+        result["error"][
+            "devolution_date"
+        ] = "*A data de devolução deve ser maior que a data de emprestimo!*"
         result["status"] = False
 
     return result
