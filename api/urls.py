@@ -13,6 +13,8 @@ from .views import (
     regist_devolution,
     regist_user,
     success,
+    user_loans_relatory,
+    admin_loans_relatory,
 )
 from .viewsets import AddressViewSet, LoginViewset, UserViewSet, BookViewSet, LoanViewSet
 
@@ -38,4 +40,6 @@ urlpatterns = [
     path("loans_relatory/", loans_relatory, name="loans_relatory"),
     path("success/", success, name="success"),
     path("error/", error, name="error"),
+    path("user_loans_relatory/", user_loans_relatory, name="user_loans_relatory"),
+    path("admin_loans_relatory/", admin_loans_relatory, name="admin_loans_relatory"),
 ]

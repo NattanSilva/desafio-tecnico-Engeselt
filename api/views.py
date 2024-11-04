@@ -7,12 +7,19 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from rest_framework.serializers import ValidationError
 
-from .models import Book, User
-from .serializers import AddressSerializer, BookSerializer, UserSerializer, LoanSerializer
+from .models import Book, Loan, User
+from .serializers import (
+    AddressSerializer,
+    BookSerializer,
+    LoanSerializer,
+    UserSerializer,
+)
 from .utils import (
+    format_loans_to_tempalte,
     get_all_active_books,
     get_all_users,
-    get_book_by_title,
+    get_loans_by_period,
+    get_many_books_by_title,
     get_user_from_email,
     validate_address_camps,
     validate_book_camps,
@@ -65,18 +72,22 @@ def home(request):
         books_list = book_serializer.data
 
         if request.method == "POST":
-            book_name = request.POST.get("search_book_name")
+            book_name = (
+                request.POST.get("search_book_name")
+                if request.POST.get("search_book_name")
+                else ""
+            )
 
-            book = get_book_by_title(book_name)
+            filtered_books = get_many_books_by_title(book_name)
 
-            if book is not None:
+            if filtered_books is not None:
                 return render(
                     request,
                     "home.html",
                     {
                         "user": get_user_from_email(request.user),
                         "icon": get_user_from_email(request.user)["complete_name"][0],
-                        "items": [book],
+                        "items": filtered_books,
                         "saved_data": {"search_book_name": book_name},
                         "reset_button": True,
                     },
@@ -201,7 +212,6 @@ def regist_user(request):
                 cep, state, city, district, street, number
             )
 
-            print(address_validation)
             if address_validation["status"]:
                 return render(
                     request,
@@ -303,8 +313,6 @@ def regist_book(request):
             total_quantity,
             available_quantity,
         )
-
-        print(book_camps_validation)
 
         if not book_camps_validation["status"]:
 
@@ -452,14 +460,20 @@ def regist_loans(request):
             )
         else:
             try:
-                loan_serializer = LoanSerializer(data={
-                    "user": user_id,
-                    "book": book_id,
-                    "aproved_date": formated_aproved_date,
-                    "expected_devolution_date": formated_expected_devolution_date,
-                    "status": loan_status,
-                    "devolution_date": datetime.now().strftime("%Y-%m-%d") if loan_status == "concluído" else None
-                })
+                loan_serializer = LoanSerializer(
+                    data={
+                        "user": user_id,
+                        "book": book_id,
+                        "aproved_date": formated_aproved_date,
+                        "expected_devolution_date": formated_expected_devolution_date,
+                        "status": loan_status,
+                        "devolution_date": (
+                            datetime.now().strftime("%Y-%m-%d")
+                            if loan_status == "concluído"
+                            else None
+                        ),
+                    }
+                )
                 loan_serializer.is_valid(raise_exception=True)
                 loan_serializer.save()
                 request.session["mensagem"] = "Emprestimo cadastrado com Sucesso!"
@@ -545,6 +559,68 @@ def error(request):
     return render(
         request,
         "error.html",
+        {
+            "user": get_user_from_email(request.user),
+            "icon": get_user_from_email(request.user)["complete_name"][0],
+        },
+    )
+
+
+@login_required
+def user_loans_relatory(request):
+    if not request.user.is_authenticated:
+        return redirect("/")
+
+    user = User.objects.get(email=request.user.email)
+    loans = Loan.objects.filter(user=user.id)
+
+    formated_data = format_loans_to_tempalte(loans)
+
+    if request.method == "POST":
+        start_date = request.POST.get("initial_date")
+        end_date = request.POST.get("final_date")
+
+        formated_start_date = datetime.strptime(start_date, "%Y-%m-%d").strftime(
+            "%Y-%m-%d"
+        )
+        formated_end_date = datetime.strptime(end_date, "%Y-%m-%d").strftime("%Y-%m-%d")
+
+        filterd_loans = get_loans_by_period(formated_start_date, formated_end_date, user)
+        print(filterd_loans)
+
+        return render(
+            request,
+            "user_loans_relatory.html",
+            {
+                "user": get_user_from_email(request.user),
+                "icon": get_user_from_email(request.user)["complete_name"][0],
+                "saved_data": {"initial_date": start_date, "final_date": end_date},
+                "list": filterd_loans,
+            },
+        )
+
+    return render(
+        request,
+        "user_loans_relatory.html",
+        {
+            "user": get_user_from_email(request.user),
+            "icon": get_user_from_email(request.user)["complete_name"][0],
+            "list": formated_data,
+        },
+    )
+
+
+@login_required
+def admin_loans_relatory(request):
+    if not request.user.is_authenticated:
+        return redirect("/")
+
+    if not request.user.is_superuser:
+        return redirect("/home")
+
+    return render(
+        request,
+        "admin_loans_relatory.html",
         {
             "user": get_user_from_email(request.user),
             "icon": get_user_from_email(request.user)["complete_name"][0],

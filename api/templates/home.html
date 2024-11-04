@@ -55,7 +55,7 @@
             <ul class="w-full flex items-center justify-center flex-wrap gap-2">
               <li class="w-3/5">
                 <form
-                  action=""
+                  action="{% url 'home' %}"
                   method="post"
                   class="w-full h-10 flex items-center justify-between px-2 bg-white rounded-md"
                 >
@@ -76,11 +76,14 @@
                 </form>
               </li>
               <li class="h-10">
-                <button
-                  class="max-w-max h-full px-4 bg-violet-500 text-white font-semibold p-1 rounded-md"
-                >
-                  Ver Histórico de Emprestimos
-                </button>
+                <form class="h-full" action="{% url 'user_loans_relatory' %}" method="get">
+                  <button
+                    type="submit"
+                    class="max-w-max h-full px-4 bg-violet-500 text-white font-semibold p-1 rounded-md"
+                  >
+                    Ver Histórico de Emprestimos
+                  </button>
+                </form>
               </li>
               <li class="w-4/5 flex items-center">
                 <span
@@ -105,7 +108,7 @@
                       id="{{ i }}"
                       class="w-[32%] flex flex-col gap-2 mb-4 bg-[#191C1F] rounded-md p-4 text-white"
                     >
-                      <p class="text-ellipsis">Nome: {{ item.title }}</p>
+                      <p class="text-ellipsis">Titulo: {{ item.title }}</p>
                       <p class="text-ellipsis">Autor:  {{ item.author }}</p>
                       <p class="text-ellipsis">Editora:  {{ item.editor }}</p>
                       <p class="text-ellipsis">Quantidade:  {{ item.available_quantity }}</p>
@@ -153,22 +156,22 @@
                 </form>
               </li>
               <li>
-                <form action="{% url "inactive_book" %}" method="get">
+                <form action="{% url 'inactive_book' %}" method="get">
                   <button type="submit" class="bg-violet-500 font-semibold text-white rounded-md p-2 transition-all hover:bg-violet-600 cursor-pointer hover:scale-110">Inativar Livro</button>
                 </form>
               </li>
               <li>
-                <form action="{% url "regist_loans" %}" method="get">
+                <form action="{% url 'regist_loans' %}" method="get">
                   <button type="submit" class="bg-violet-500 font-semibold text-white rounded-md p-2 transition-all hover:bg-violet-600 cursor-pointer hover:scale-110">Registro de Emprestimo</button>
                 </form>
               </li>
               <li>
-                <form action="{% url "regist_devolution" %}" method="get">
+                <form action="{% url 'regist_devolution' %}" method="get">
                   <button type="submit" class="bg-violet-500 font-semibold text-white rounded-md p-2 transition-all hover:bg-violet-600 cursor-pointer hover:scale-110">Registrar Devolução</button>
                 </form>
               </li>
               <li>
-                <form action="{% url "loans_relatory" %}" method="get">
+                <form action="{% url 'admin_loans_relatory' %}" method="get">
                   <button type="submit" class="bg-violet-500 font-semibold text-white rounded-md p-2 transition-all hover:bg-violet-600 cursor-pointer hover:scale-110">Relatorio de Emprestimos</button>
                 </form>
               </li>

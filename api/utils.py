@@ -1,4 +1,5 @@
 from datetime import date
+from uuid import UUID
 
 from django.forms.models import model_to_dict
 
@@ -116,6 +117,25 @@ def get_book_by_title(title: str):
         return model_to_dict(book)
     except Book.DoesNotExist:
         return None
+    
+def get_many_books_by_title(title: str):
+    result = []
+
+    if title is None or title == "":
+        books = Book.objects.filter(is_active=True, available_quantity__gt=0)
+        
+        for book in books:
+            result.append(model_to_dict(book))
+        
+        return result
+    
+    books = Book.objects.filter(title__icontains=title, is_active=True, available_quantity__gt=0)
+
+    for book in books:
+        result.append(model_to_dict(book))
+    
+    return result
+    
 
 
 def get_book_by_id(book_id: str):
@@ -193,3 +213,27 @@ def validate_loan_regist_camps(
         response["status"] = False
 
     return response
+
+def format_loans_to_tempalte(loans):
+    result = []
+
+    for item in loans:
+        formated_data = {}
+        # convete string para UUID
+        book_id = UUID(str(item.book))
+        current_book = Book.objects.get(id=book_id)
+
+        formated_data["id"] = item.id
+        formated_data["book_title"] = current_book.title
+        formated_data["aproved_date"] = item.aproved_date
+        formated_data["expected_devolution_date"] = item.expected_devolution_date
+        formated_data["devolution_date"] = item.devolution_date
+        formated_data["status"] = item.status
+
+        result.append(formated_data)
+    
+    return result
+
+def get_loans_by_period(start_date: str, end_date: str, user: str):
+    loans = Loan.objects.filter(aproved_date__range=[start_date, end_date], user=user)
+    return format_loans_to_tempalte(loans)
