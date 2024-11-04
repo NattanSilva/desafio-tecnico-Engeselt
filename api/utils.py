@@ -280,3 +280,31 @@ def devolution_validate_camps(loan_id: str, devolution_date: str):
         result["status"] = False
 
     return result
+
+def formated_book_list(books, user: str):
+
+    result = []
+
+    user_query = User.objects.get(email=user)
+
+    for book in books:
+        formated_data = {}
+        formated_data["id"] = book["id"]
+        formated_data["title"] = book["title"]
+        formated_data["author"] = book["author"]
+        formated_data["isbn"] = book["isbn"]
+        formated_data["editor"] = book["editor"]
+        formated_data["year_publication"] = book["year_publication"]
+        formated_data["total_quantity"] = book["total_quantity"]
+        formated_data["available_quantity"] = book["available_quantity"]
+
+        loan_from_book = Loan.objects.filter(book=book["id"], user=user_query.id)
+
+        if len(loan_from_book) > 0:
+            formated_data["loan_status"] = loan_from_book[len(loan_from_book) - 1].status
+        else:
+            formated_data["loan_status"] = "disponivel"
+
+        result.append(formated_data)
+
+    return result

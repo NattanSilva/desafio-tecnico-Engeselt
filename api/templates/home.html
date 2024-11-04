@@ -111,15 +111,34 @@
                       <p class="text-ellipsis">Titulo: {{ item.title }}</p>
                       <p class="text-ellipsis">Autor:  {{ item.author }}</p>
                       <p class="text-ellipsis">Editora:  {{ item.editor }}</p>
-                      <p class="text-ellipsis">Quantidade:  {{ item.available_quantity }}</p>
-                      <button
-                        class="h-10 bg-[#4C6EF5] mt-2 text-white font-semibold rounded-sm transition-colors hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
-                        {% if False %}
-                          disabled
+                      <p class="text-ellipsis">ISBN:  {{ item.isbn }}</p>
+                      <p class="text-ellipsis">Quantidade Disponível:  {{ item.available_quantity }}</p> 
+                      <p class="text-ellipsis">Data de Publicação:  {{ item.year_publication }}</p>
+                      <form class="w-full flex items-center justify-center mt-2" action="{% url 'home' %}" method="post">
+                        {% csrf_token %}
+                        <input class="hidden" type="text" name="book_id" id="book_id" value="{{ item.id }}">
+                        {% if item.loan_status == "em aberto" %}
+                          <button
+                            class="w-3/5 h-10 bg-yellow-500 text-white font-semibold rounded-sm transition-colors hover:bg-yellow-600 disabled:cursor-not-allowed"
+                            disabled
+                          >
+                            Em Aberto
+                          </button>
+                        {% elif item.loan_status == "pendente"  %}
+                          <button
+                            class="w-3/5 h-10 bg-gray-500 text-white font-semibold rounded-sm transition-colors hover:bg-gray-600 disabled:cursor-not-allowed"
+                            disabled
+                          >
+                            Pendente
+                          </button>
+                        {% else %}
+                          <button
+                            class="w-3/5 h-10 bg-[#4C6EF5] text-white font-semibold rounded-sm transition-colors hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
+                          >
+                            Solicitar Emprestimo
+                          </button>
                         {% endif %}
-                      >
-                        Solicitar emprestimo
-                      </button>
+                      </form>
                     </li>
                   {% endfor %}
                 </ul>

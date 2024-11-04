@@ -50,7 +50,7 @@
     </header>
     <main class="w-full h-auto flex flex-col justify-center items-center gap-4">
       <section class="w-4/5 mt-32 flex flex-col gap-6">
-        <h2 class="text-red-500 font-bold text-3xl">❌ 400 - Bad request</h2>
+        <h2 class="text-red-500 font-bold text-3xl">❌ {{request.session.error_type }} 400 - Bad request</h2>
         {% for camp, mensages in request.session.mensagem.items %}
           <h3 class="text-red-500 font-bold text-2xl">- {{ camp }}:</h3>
           <ul class="list-disc px-4">

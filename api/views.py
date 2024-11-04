@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as django_login
@@ -15,18 +15,19 @@ from .serializers import (
     UserSerializer,
 )
 from .utils import (
+    devolution_validate_camps,
     format_loans_to_tempalte,
+    formated_book_list,
     get_all_active_books,
     get_all_users,
     get_loans_by_period,
     get_many_books_by_title,
+    get_oppening_loans,
     get_user_from_email,
     validate_address_camps,
     validate_book_camps,
     validate_email_exists,
     validate_loan_regist_camps,
-    get_oppening_loans,
-    devolution_validate_camps,
 )
 
 
@@ -72,6 +73,51 @@ def home(request):
         book_serializer.is_valid()
 
         books_list = book_serializer.data
+        formated_books_list = formated_book_list(books_list, user["email"])
+
+        if request.method == "POST" and (
+            request.POST.get("book_id") is not None
+            and request.POST.get("book_id") != ""
+        ):
+            book_id = request.POST.get("book_id")
+
+            expected_devolution_date = datetime.now() + timedelta(days=3)
+
+            formated_expected_devolution_date = (
+                expected_devolution_date.date().strftime("%Y-%m-%d")
+            )
+
+            user_queryset = User.objects.get(email=user["email"])
+
+            try:
+                loan_serializer = LoanSerializer(
+                    data={
+                        "user": user_queryset.id,
+                        "book": book_id,
+                        "status": "pendente",
+                        "expected_devolution_date": formated_expected_devolution_date,
+                    }
+                )
+
+                loan_serializer.is_valid(raise_exception=True)
+
+                loan_serializer.save()
+
+                formated_books_list = formated_book_list(books_list, user["email"])
+
+                return render(
+                    request,
+                    "home.html",
+                    {
+                        "user": get_user_from_email(request.user),
+                        "icon": get_user_from_email(request.user)["complete_name"][0],
+                        "items": formated_books_list,
+                    },
+                )
+            except ValidationError as e:
+                request.session["mensagem"] = e.detail
+                request.session["error_type"] = "Solicitação de Empréstimo"
+                return redirect("error")
 
         if request.method == "POST":
             book_name = (
@@ -81,6 +127,7 @@ def home(request):
             )
 
             filtered_books = get_many_books_by_title(book_name)
+            formated_filtered_books = formated_book_list(filtered_books, user["id"])
 
             if filtered_books is not None:
                 return render(
@@ -89,7 +136,7 @@ def home(request):
                     {
                         "user": get_user_from_email(request.user),
                         "icon": get_user_from_email(request.user)["complete_name"][0],
-                        "items": filtered_books,
+                        "items": formated_filtered_books,
                         "saved_data": {"search_book_name": book_name},
                         "reset_button": True,
                     },
@@ -113,7 +160,7 @@ def home(request):
             {
                 "user": get_user_from_email(request.user),
                 "icon": get_user_from_email(request.user)["complete_name"][0],
-                "items": books_list,
+                "items": formated_books_list,
             },
         )
 
@@ -275,6 +322,7 @@ def regist_user(request):
 
                 except ValidationError as e:
                     request.session["mensagem"] = e.detail
+                    request.session["error_type"] = "Registro de Usuário"
                     return redirect("error")
     return render(
         request,
@@ -360,6 +408,7 @@ def regist_book(request):
                 return redirect("success")
             except ValidationError as e:
                 request.session["mensagem"] = e.detail
+                request.session["error_type"] = "Registro de Livro"
                 return redirect("error")
 
     return render(
@@ -482,6 +531,7 @@ def regist_loans(request):
                 return redirect("success")
             except ValidationError as e:
                 request.session["mensagem"] = e.detail
+                request.session["error_type"] = "Registro de Emprestimo"
                 return redirect("error")
 
     return render(
@@ -503,7 +553,7 @@ def regist_devolution(request):
 
     if not request.user.is_superuser:
         return redirect("/home")
-    
+
     active_loans = get_oppening_loans()
 
     if request.method == "POST":
@@ -513,7 +563,9 @@ def regist_devolution(request):
 
         print("observation", request.POST.get("observation"))
 
-        camps_validation = devolution_validate_camps(loan_id=loan_id, devolution_date=loan_devolution_date)
+        camps_validation = devolution_validate_camps(
+            loan_id=loan_id, devolution_date=loan_devolution_date
+        )
 
         if not camps_validation["status"]:
             return render(
@@ -534,7 +586,9 @@ def regist_devolution(request):
         else:
             try:
                 loan = Loan.objects.get(id=loan_id)
-                formated_devolution_date = datetime.strptime(loan_devolution_date, "%Y-%m-%d").strftime("%Y-%m-%d")
+                formated_devolution_date = datetime.strptime(
+                    loan_devolution_date, "%Y-%m-%d"
+                ).strftime("%Y-%m-%d")
                 loan.devolution_date = formated_devolution_date
                 loan.observation = loan_observation
                 loan.status = "concluído"
@@ -543,6 +597,7 @@ def regist_devolution(request):
                 return redirect("success")
             except ValidationError as e:
                 request.session["mensagem"] = e.detail
+                request.session["error_type"] = "Registro de Devolução"
                 return redirect("error")
 
     return render(
@@ -551,7 +606,7 @@ def regist_devolution(request):
         {
             "user": get_user_from_email(request.user),
             "icon": get_user_from_email(request.user)["complete_name"][0],
-            "loans_list": active_loans
+            "loans_list": active_loans,
         },
     )
 
@@ -629,7 +684,9 @@ def user_loans_relatory(request):
         )
         formated_end_date = datetime.strptime(end_date, "%Y-%m-%d").strftime("%Y-%m-%d")
 
-        filtered_loans = get_loans_by_period(formated_start_date, formated_end_date, user)
+        filtered_loans = get_loans_by_period(
+            formated_start_date, formated_end_date, user
+        )
 
         return render(
             request,
@@ -660,7 +717,7 @@ def admin_loans_relatory(request):
 
     if not request.user.is_superuser:
         return redirect("/home")
-    
+
     loans = Loan.objects.all()
 
     formated_loans = format_loans_to_tempalte(loans)
@@ -675,7 +732,7 @@ def admin_loans_relatory(request):
         formated_end_date = datetime.strptime(end_date, "%Y-%m-%d").strftime("%Y-%m-%d")
 
         filtered_loans = get_loans_by_period(formated_start_date, formated_end_date)
-        
+
         return render(
             request,
             "admin_loans_relatory.html",
