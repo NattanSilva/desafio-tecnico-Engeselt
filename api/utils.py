@@ -223,17 +223,23 @@ def format_loans_to_tempalte(loans):
         book_id = UUID(str(item.book))
         current_book = Book.objects.get(id=book_id)
 
+        current_user = User.objects.get(email=item.user)
+
         formated_data["id"] = item.id
         formated_data["book_title"] = current_book.title
         formated_data["aproved_date"] = item.aproved_date
         formated_data["expected_devolution_date"] = item.expected_devolution_date
         formated_data["devolution_date"] = item.devolution_date
         formated_data["status"] = item.status
+        formated_data["user_name"] = current_user.complete_name
 
         result.append(formated_data)
     
     return result
 
-def get_loans_by_period(start_date: str, end_date: str, user: str):
-    loans = Loan.objects.filter(aproved_date__range=[start_date, end_date], user=user)
+def get_loans_by_period(start_date: str, end_date: str, user: str = None):
+    if user is not None and user != "":
+        loans = Loan.objects.filter(aproved_date__range=[start_date, end_date], user=user)
+    else:
+        loans = Loan.objects.filter(aproved_date__range=[start_date, end_date])
     return format_loans_to_tempalte(loans)

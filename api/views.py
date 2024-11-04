@@ -585,8 +585,7 @@ def user_loans_relatory(request):
         )
         formated_end_date = datetime.strptime(end_date, "%Y-%m-%d").strftime("%Y-%m-%d")
 
-        filterd_loans = get_loans_by_period(formated_start_date, formated_end_date, user)
-        print(filterd_loans)
+        filtered_loans = get_loans_by_period(formated_start_date, formated_end_date, user)
 
         return render(
             request,
@@ -595,7 +594,7 @@ def user_loans_relatory(request):
                 "user": get_user_from_email(request.user),
                 "icon": get_user_from_email(request.user)["complete_name"][0],
                 "saved_data": {"initial_date": start_date, "final_date": end_date},
-                "list": filterd_loans,
+                "list": filtered_loans,
             },
         )
 
@@ -617,6 +616,34 @@ def admin_loans_relatory(request):
 
     if not request.user.is_superuser:
         return redirect("/home")
+    
+    loans = Loan.objects.all()
+
+    formated_loans = format_loans_to_tempalte(loans)
+
+    if request.method == "POST":
+        start_date = request.POST.get("initial_date")
+        end_date = request.POST.get("final_date")
+
+        formated_start_date = datetime.strptime(start_date, "%Y-%m-%d").strftime(
+            "%Y-%m-%d"
+        )
+        formated_end_date = datetime.strptime(end_date, "%Y-%m-%d").strftime("%Y-%m-%d")
+
+        filtered_loans = get_loans_by_period(formated_start_date, formated_end_date)
+        print(f"filtered laons - {filtered_loans}")
+
+        
+        return render(
+            request,
+            "admin_loans_relatory.html",
+            {
+                "user": get_user_from_email(request.user),
+                "icon": get_user_from_email(request.user)["complete_name"][0],
+                "saved_data": {"initial_date": start_date, "final_date": end_date},
+                "list": filtered_loans,
+            },
+        )
 
     return render(
         request,
@@ -624,5 +651,6 @@ def admin_loans_relatory(request):
         {
             "user": get_user_from_email(request.user),
             "icon": get_user_from_email(request.user)["complete_name"][0],
+            "list": formated_loans,
         },
     )
