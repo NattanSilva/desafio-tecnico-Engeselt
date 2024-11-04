@@ -74,6 +74,8 @@ def validate_book_camps(
 
     response = {"status": True, "error": {}}
 
+    loans_by_isbn = Loan.objects.filter(isbn=isbn)
+
     if int(total_quantity) <= 0:
         response["error"][
             "total_quantity"
@@ -105,6 +107,10 @@ def validate_book_camps(
         response["error"][
             "year_publication"
         ] = "*O campo ano de publicação deve ser maior que zero!*"
+        response["status"] = False
+
+    if len(loans_by_isbn) > 0:
+        response["error"]["isbn"] = "*Este ISBN ja foi utilizado!*"
         response["status"] = False
 
     return response
@@ -243,3 +249,24 @@ def get_loans_by_period(start_date: str, end_date: str, user: str = None):
     else:
         loans = Loan.objects.filter(aproved_date__range=[start_date, end_date])
     return format_loans_to_tempalte(loans)
+
+def get_oppening_loans():
+    loans = Loan.objects.filter(status="em aberto")
+    return format_loans_to_tempalte(loans)
+
+def devolution_validate_camps(loan_id: str, devolution_date: str):
+    result = {"status": True, "error": {}}
+
+    if loan_id == "Nenhum Emprestimo Cadastrado":
+        result["error"]["loan_id"] = "*Emprestimo inexistente!*"
+        result["status"] = False
+
+        return result
+
+    loan = Loan.objects.get(id=loan_id)
+
+    if not validate_gt_loan_date(loan.aproved_date, devolution_date):
+        result["error"]["devolution_date"] = "*A data de devolução deve ser maior que a data de emprestimo!*"
+        result["status"] = False
+
+    return result

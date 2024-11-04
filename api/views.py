@@ -25,6 +25,8 @@ from .utils import (
     validate_book_camps,
     validate_email_exists,
     validate_loan_regist_camps,
+    get_oppening_loans,
+    devolution_validate_camps,
 )
 
 
@@ -501,6 +503,47 @@ def regist_devolution(request):
 
     if not request.user.is_superuser:
         return redirect("/home")
+    
+    active_loans = get_oppening_loans()
+
+    if request.method == "POST":
+        loan_id = request.POST.get("loans_ids")
+        loan_devolution_date = request.POST.get("devolution_date")
+        loan_observation = request.POST.get("observation")
+
+        print("observation", request.POST.get("observation"))
+
+        camps_validation = devolution_validate_camps(loan_id=loan_id, devolution_date=loan_devolution_date)
+
+        if not camps_validation["status"]:
+            return render(
+                request,
+                "regist_devolution.html",
+                {
+                    "user": get_user_from_email(request.user),
+                    "icon": get_user_from_email(request.user)["complete_name"][0],
+                    "loans_list": active_loans,
+                    "saved_data": {
+                        "loan_id": loan_id,
+                        "devolution_date": loan_devolution_date,
+                        "observation": loan_observation.strip(),
+                    },
+                    "error": camps_validation["error"],
+                },
+            )
+        else:
+            try:
+                loan = Loan.objects.get(id=loan_id)
+                formated_devolution_date = datetime.strptime(loan_devolution_date, "%Y-%m-%d").strftime("%Y-%m-%d")
+                loan.devolution_date = formated_devolution_date
+                loan.observation = loan_observation
+                loan.status = "concluído"
+                loan.save()
+                request.session["mensagem"] = "Emprestimo devolvido com sucesso!"
+                return redirect("success")
+            except ValidationError as e:
+                request.session["mensagem"] = e.detail
+                return redirect("error")
 
     return render(
         request,
@@ -508,6 +551,7 @@ def regist_devolution(request):
         {
             "user": get_user_from_email(request.user),
             "icon": get_user_from_email(request.user)["complete_name"][0],
+            "loans_list": active_loans
         },
     )
 
@@ -631,8 +675,6 @@ def admin_loans_relatory(request):
         formated_end_date = datetime.strptime(end_date, "%Y-%m-%d").strftime("%Y-%m-%d")
 
         filtered_loans = get_loans_by_period(formated_start_date, formated_end_date)
-        print(f"filtered laons - {filtered_loans}")
-
         
         return render(
             request,
