@@ -1,13 +1,225 @@
 {
   "_type": "export",
   "__export_format": 4,
-  "__export_date": "2024-11-03T01:11:38.502Z",
+  "__export_date": "2024-11-05T04:05:04.644Z",
   "__export_source": "insomnia.desktop.app:v10.1.1",
   "resources": [
     {
+      "_id": "req_2e5a1b4eeda74c8aab8b8a56ac82ca15",
+      "parentId": "fld_b5f34b9de3054749885a7624139e5804",
+      "modified": 1730679827075,
+      "created": 1730655502810,
+      "url": "{{ _.BASE_URL }}/loans/",
+      "name": "Create",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"user\": \"4631914f-d3c2-4c2a-942a-90a2e03f69f1\",\n\t\"book\": \"a745dd53-1e68-4198-972d-f1a87937aa28\",\n\t\"expected_devolution_date\": \"2024-11-04\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json",
+          "id": "pair_6d0b7fd10f0449368c981d43a2d5d1d0"
+        },
+        {
+          "name": "User-Agent",
+          "value": "insomnia/10.1.1",
+          "id": "pair_a2fb6fab71f049d2be11ce3683c5069a"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.TOKEN_LEITOR }}",
+          "id": "pair_ae5c0eca72194a78bace629037608bff",
+          "disabled": false
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.TOKEN_ADMIN }}",
+          "id": "pair_2e5d3cd34f2c4cc68ca3b59d917c66a3",
+          "disabled": true
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1730655457005,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "fld_b5f34b9de3054749885a7624139e5804",
+      "parentId": "wrk_fb68af4cb29e4f77ad3443eafa32df19",
+      "modified": 1730655454683,
+      "created": 1730655454683,
+      "name": "Loans",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1730655454683,
+      "_type": "request_group"
+    },
+    {
+      "_id": "wrk_fb68af4cb29e4f77ad3443eafa32df19",
+      "parentId": null,
+      "modified": 1730304172383,
+      "created": 1730304172383,
+      "name": "Desafio-engeselt",
+      "description": "",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "req_f5a36e1d46854abeae111fc18f309195",
+      "parentId": "fld_b5f34b9de3054749885a7624139e5804",
+      "modified": 1730655476334,
+      "created": 1730655456904,
+      "url": "{{ _.BASE_URL }}/loans/",
+      "name": "Read All",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [{ "name": "User-Agent", "value": "insomnia/10.1.1" }],
+      "authentication": {},
+      "metaSortKey": -1730655456905,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_a8c80543a1f24b6db7847218c5c05148",
+      "parentId": "fld_b5f34b9de3054749885a7624139e5804",
+      "modified": 1730663874548,
+      "created": 1730655487744,
+      "url": "{{ _.BASE_URL }}/loans/2e3bbdc8-f824-4fa3-99f0-0432e61f3143/",
+      "name": "Read One",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [{ "name": "User-Agent", "value": "insomnia/10.1.1" }],
+      "authentication": {},
+      "metaSortKey": -1730625461182,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_659551ec740e43babe8749172447df1d",
+      "parentId": "fld_b5f34b9de3054749885a7624139e5804",
+      "modified": 1730669821274,
+      "created": 1730656200234,
+      "url": "{{ _.BASE_URL }}/loans/5ffde893-6fb0-4ecf-9287-62ecdf1de73e/",
+      "name": "Update",
+      "description": "",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"status\": \"concluído\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json",
+          "id": "pair_eb19a076d0d7415bb1ce0699af4df6d4"
+        },
+        {
+          "name": "User-Agent",
+          "value": "insomnia/10.1.1",
+          "id": "pair_01fe096d29f44591875df702ea2afce1"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.TOKEN_LEITOR }}",
+          "id": "pair_4bc03418498b491b8b409682ef9c7862",
+          "disabled": true
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.TOKEN_ADMIN }}",
+          "id": "pair_b174529d060d422f81e6af9aaf936a76",
+          "disabled": false
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1730610463320.5,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_8f69ad4e2cca4e3d8f95785f6a0072c9",
+      "parentId": "fld_b5f34b9de3054749885a7624139e5804",
+      "modified": 1730670211426,
+      "created": 1730656287418,
+      "url": "{{ _.BASE_URL }}/loans/5ffde893-6fb0-4ecf-9287-62ecdf1de73e/",
+      "name": "Delete",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "User-Agent",
+          "value": "insomnia/10.1.1",
+          "id": "pair_01fe096d29f44591875df702ea2afce1"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.TOKEN_LEITOR }}",
+          "id": "pair_4bc03418498b491b8b409682ef9c7862",
+          "disabled": true
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.TOKEN_ADMIN }}",
+          "id": "pair_b174529d060d422f81e6af9aaf936a76",
+          "disabled": false
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1730602964389.75,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
       "_id": "req_28613cfef01d4bba9121fc41c91c4b85",
       "parentId": "fld_821dadd587d94b3497dfe754092b8b08",
-      "modified": 1730596175708,
+      "modified": 1730655532024,
       "created": 1730595539124,
       "url": "{{ _.BASE_URL }}/books/",
       "name": "Create",
@@ -67,14 +279,54 @@
       "_type": "request_group"
     },
     {
-      "_id": "wrk_fb68af4cb29e4f77ad3443eafa32df19",
-      "parentId": null,
-      "modified": 1730304172383,
-      "created": 1730304172383,
-      "name": "Desafio-engeselt",
+      "_id": "req_1644532f6e774eabb62a78539ff2a1c9",
+      "parentId": "fld_821dadd587d94b3497dfe754092b8b08",
+      "modified": 1730659374916,
+      "created": 1730659311249,
+      "url": "{{ _.BASE_URL }}/books/",
+      "name": "Create -  Inactive book",
       "description": "",
-      "scope": "collection",
-      "_type": "workspace"
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"title\": \"O CORVO 2\",\n\t\"author\": \"Edgar Allan Poe\",\n\t\"isbn\": \"9786555980258\",\n\t\"editor\": \"DARKSIDE\",\n\t\"gender\": \"Suspense\",\n\t\"total_quantity\": 10,\n\t\"available_quantity\": 0,\n\t\"year_publication\": 2010,\n\t\"is_active\": false\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json",
+          "id": "pair_35332e29a1c54d29871f306948680005"
+        },
+        {
+          "name": "User-Agent",
+          "value": "insomnia/10.1.1",
+          "id": "pair_ac958477873541daaca39ede39abedd5"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.TOKEN_LEITOR }}",
+          "id": "pair_24137de0761941b79c22adeea491ac92",
+          "disabled": true
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.TOKEN_ADMIN }}",
+          "id": "pair_eee20d5c9d664f829b30b65f94a62858",
+          "disabled": false
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1730595465409,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
     },
     {
       "_id": "req_3b4f3fd902414b078bdb49d0f956747a",
