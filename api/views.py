@@ -456,6 +456,42 @@ def inactive_book(request):
         },
     )
 
+@login_required
+def active_book(request):
+    if not request.user.is_authenticated:
+        return redirect("/")
+
+    if not request.user.is_superuser:
+        return redirect("/home")
+    
+    books_queryset = Book.objects.filter(is_active=False)
+
+    book_serializer = BookSerializer(data=books_queryset, many=True)
+    book_serializer.is_valid()
+
+    desactived_books = book_serializer.data
+
+    if request.method == "POST":
+        book_id = request.POST.get("books_ids")
+
+        print(book_id)
+
+        book = Book.objects.get(id=book_id)
+        book.is_active = True
+        book.save()
+
+        request.session["mensagem"] = "Livro Ativado com Sucesso!"
+        return redirect("success")
+    
+    return render(
+        request,
+        "activate_book.html",
+        {
+            "user": get_user_from_email(request.user),
+            "icon": get_user_from_email(request.user)["complete_name"][0],
+            "desactived_books_list": desactived_books,
+        },
+    )
 
 @login_required
 def regist_loans(request):

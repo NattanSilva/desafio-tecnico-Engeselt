@@ -15,6 +15,7 @@ from .views import (
     success,
     user_loans_relatory,
     admin_loans_relatory,
+    active_book,
 )
 from .viewsets import AddressViewSet, LoginViewset, UserViewSet, BookViewSet, LoanViewSet
 
@@ -42,4 +43,5 @@ urlpatterns = [
     path("error/", error, name="error"),
     path("user_loans_relatory/", user_loans_relatory, name="user_loans_relatory"),
     path("admin_loans_relatory/", admin_loans_relatory, name="admin_loans_relatory"),
+    path("active_book/", active_book, name="active_book"),
 ]
