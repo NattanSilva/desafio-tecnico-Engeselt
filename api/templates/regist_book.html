@@ -1,0 +1,271 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      * {
+        font-family: 'Inter', serif;
+      }
+
+      html {
+        background-color: #212529;
+      }
+    </style>
+    <title>Genius Lab</title>
+  </head>
+  <body>
+    <header
+      class="w-full h-20 flex items-center justify-center top-0 fixed z-10 bg-[#191C1F]"
+    >
+      <nav class="w-4/5 flex justify-between">
+        <div class="flex gap-2 justify-center items-center">
+          <div
+            class="w-10 h-10 flex items-center justify-center rounded-full bg-violet-500 text-white"
+          >
+            <p class="text-2xl font-bold">{{ icon }}</p>
+          </div>
+          <p class="text-white font-semibold text-xl">
+            {{ user.complete_name }}
+          </p>
+        </div>
+        <div class="flex justify-center items-center gap-2">
+          <form action="{% url 'home' %}" method="post">
+            {% csrf_token %}
+            <button
+              class="rounded-md px-4 py-2 bg-violet-500 text-white font-semibold"
+              type="submit"
+            >
+              Home
+            </button>
+          </form>
+        </div>
+      </nav>
+    </header>
+    <main class="w-full h-auto flex flex-col justify-center items-center gap-4">
+      <section class="w-4/5 mt-32 flex flex-col items-center gap-6">
+        <div>
+          <h3 class="text-2xl text-white font-bold">
+            ➕ Registro de Livro
+          </h3>
+        </div>
+        <form
+          action="{% url 'regist_book'%}"
+          method="post"
+          class="w-3/5 flex flex-col items-center mb-8 gap-5 bg-[#191C1F] p-4 rounded-md"
+          id="regist_form"
+        >
+          {% csrf_token %}
+          <div class="w-full flex flex-col gap-2">
+            <label class="text-[#ADB5BD]" for="title"
+              >Titulo</label
+            >
+            <input class="w-full h-12 px-2 rounded-md" 
+              type="text"
+              name="title" 
+              id="title" 
+              placeholder="Meu livro" 
+              required
+              {% if saved_data.title is not None  %}
+                value="{{ saved_data.title }}"
+              {% endif %}
+            />
+            {% if error.title is not None or error.title != "" %}
+              <span class="text-sm text-red-500">{{ error.title }}</span>
+            {% endif %}
+          </div>
+          <div class="w-full flex flex-col gap-2">
+            <label class="text-[#ADB5BD]" for="author">Autor</label>
+            <input
+              class="w-full h-12 px-2 rounded-md"
+              type="text"
+              id="author"
+              name="author"
+              placeholder="John Doe"
+              required
+              {% if saved_data.author is not None  %}
+                value="{{ saved_data.author }}"
+              {% endif %}
+            />
+            {% if error.author is not None or error.author != "" %}
+              <span class="text-sm text-red-500">{{ error.author }}</span>
+            {% endif %}
+          </div>
+          <div class="w-full flex flex-col gap-2">
+            <label class="text-[#ADB5BD]" for="isbn">ISBN</label>
+            <input
+              class="w-full h-12 px-2 rounded-md"
+              type="text"
+              id="isbn"
+              name="isbn"
+              placeholder="1111111111111"
+              minlength="13"
+              maxlength="13"
+              required
+              {% if saved_data.isbn is not None  %}
+                value="{{ saved_data.isbn }}"
+              {% endif %}
+            />
+            {% if error.isbn is not None or error.isbn != "" %}
+              <span class="text-sm text-red-500">{{ error.isbn }}</span>
+            {% endif %}
+          </div>
+          <div class="w-full flex flex-col gap-2">
+            <label class="text-[#ADB5BD]" for="editor">Editora</label>
+            <input
+              class="w-full h-12 px-2 rounded-md"
+              type="text"
+              id="editor"
+              name="editor"
+              placeholder="Minha editora"
+              required
+              {% if saved_data.editor is not None  %}
+                value="{{ saved_data.editor }}"
+              {% endif %}
+            />
+            {% if error.editor is not None or error.editor != "" %}
+              <span class="text-sm text-red-500">{{ error.editor }}</span>
+            {% endif %}
+          </div>
+          <div class="w-full flex flex-col gap-2">
+            <label class="text-[#ADB5BD]" for="year_publication">Ano de Publicação</label>
+            <input
+              class="w-full h-12 px-2 rounded-md"
+              type="number"
+              min="1"
+              id="year_publication"
+              name="year_publication"
+              placeholder="2024"
+              required
+              {% if saved_data.year_publication is not None  %}
+                value="{{ saved_data.year_publication }}"
+              {% endif %}
+            />
+            {% if error.year_publication is not None or error.year_publication != "" %}
+              <span class="text-sm text-red-500">{{ error.year_publication }}</span>
+            {% endif %}
+          </div>
+          <div class="w-full flex flex-col gap-2">
+            <label class="text-[#ADB5BD]" for="gender"
+              >Gênero</label
+            >
+            <select
+              required
+              class="w-full h-12 px-2 rounded-md"
+              name="gender"
+              id="gender"
+            >
+              <option 
+                value="Fantasia"
+                {% if saved_data.gender is not None and saved_data.gender == 'Fantasia' %}
+                  selected
+                {% endif %}
+              >
+                Fantasia
+              </option>
+              <option 
+                value="Ficção Científica"
+                {% if saved_data.gender is not None and saved_data.gender == 'Ficção Científica' %}
+                  selected
+                {% endif %}
+              >
+                Ficção Científica
+              </option>
+              <option 
+                value="Mistério"
+                {% if saved_data.gender is not None and saved_data.gender == 'Mistério' %}
+                  selected
+                {% endif %}
+              >
+                Mistério
+              </option>
+              <option 
+                value="Romance"
+                {% if saved_data.gender is not None and saved_data.gender == 'Romance' %}
+                  selected
+                {% endif %}
+              >
+                Romance
+              </option>
+            </select>
+          </div>
+          <div class="w-full flex flex-col gap-2">
+            <label class="w-full text-[#ADB5BD]" for="total_quantity"
+              >Quantidade Total</label
+            >
+            <input
+              class="w-full h-12 px-2 rounded-md"
+              type="number"
+              id="total_quantity"
+              name="total_quantity"
+              min="1"
+              step="1"
+              placeholder="1"
+              required
+              {% if saved_data.total_quantity is not None  %}
+                value="{{ saved_data.total_quantity }}"
+              {% endif %}
+            />
+            {% if error.total_quantity is not None or error.total_quantity != "" %}
+              <span class="text-sm text-red-500">{{ error.total_quantity }}</span>
+            {% endif %}
+          </div>
+          <div class="w-full flex flex-col gap-2">
+            <label class="w-full text-[#ADB5BD]" for="available_quantity"
+              >Quantidade disponivel</label
+            >
+            <input
+              class="w-full h-12 px-2 rounded-md"
+              type="number"
+              id="available_quantity"
+              name="available_quantity"
+              min="0"
+              step="1"
+              placeholder="1"
+              required
+              {% if saved_data.available_quantity is not None  %}
+                value="{{ saved_data.available_quantity }}"
+              {% endif %}
+            />
+            {% if error.available_quantity is not None or error.available_quantity != "" %}
+              <span class="text-sm text-red-500">{{ error.available_quantity }}</span>
+            {% endif %}
+          </div>
+          <div class="w-full flex flex-col gap-2">
+            <label class="text-[#ADB5BD]" for="description"
+              >Descrição(opicional)</label
+            >
+            <textarea
+              class="w-full h-32 px-1 rounded-md"
+              type="text"
+              id="description"
+              name="description"
+              placeholder="Descrição do meu livro..."
+            >{% if saved_data.description is not None  %}{{ saved_data.description }}{% endif %}</textarea>
+          </div>
+          <button
+            class="w-1/2 h-12 flex justify-center items-center bg-violet-500 text-xl text-white font-semibold rounded-md transition-colors hover:bg-violet-600 disabled:bg-gray-600 disabled:cursor-not-allowed"
+            type="submit"
+          >
+            Cadastrar
+          </button>
+        </form>
+      </section>
+    </main>
+    <script>
+      const year_publication_iput = document.getElementById('year_publication')
+      const anoAtual = new Date().getFullYear();
+      
+      // Colocando o ano maximo como o ano atual no input
+      year_publication_iput.max = anoAtual;
+    </script>
+  </body>
+</html>

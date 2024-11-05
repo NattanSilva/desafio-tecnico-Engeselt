@@ -1,0 +1,143 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      * {
+        font-family: 'Inter', serif;
+      }
+
+      html {
+        background-color: #212529;
+      }
+    </style>
+    <title>Genius Lab</title>
+  </head>
+  <body>
+    <header
+      class="w-full h-20 flex items-center justify-center top-0 fixed z-10 bg-[#191C1F]"
+    >
+      <nav class="w-4/5 flex justify-between">
+        <div class="flex gap-2 justify-center items-center">
+          <div
+            class="w-10 h-10 flex items-center justify-center rounded-full bg-violet-500 text-white"
+          >
+            <p class="text-2xl font-bold">{{ icon }}</p>
+          </div>
+          <p class="text-white font-semibold text-xl">
+            {{ user.complete_name }}
+          </p>
+        </div>
+        <form action="{% url 'home' %}" method="post">
+          {% csrf_token %}
+          <button
+            class="rounded-md px-4 py-2 bg-violet-500 text-white font-semibold"
+            type="submit"
+          >
+            Home
+          </button>
+        </form>
+      </nav>
+    </header>
+    <main class="w-full h-auto flex flex-col justify-center items-center gap-4">
+      <section class="w-4/5 mt-32 flex flex-col items-center gap-6">
+        <h3 class="text-2xl text-white font-bold">✔️ Devolução de Livro</h3>
+        <form
+          action="{% url 'regist_devolution' %}"
+          method="post"
+          class="w-3/5 flex flex-col items-center mb-8 gap-5 bg-[#191C1F] p-4 rounded-md"
+          id="regist_form"
+        >
+          {% csrf_token %}
+          <div class="w-full flex flex-col gap-2">
+            <label class="text-[#ADB5BD]" for="loans_ids"
+              >Empréstimo</label
+            >
+            <select
+              required
+              class="w-full h-12 px-2 rounded-md"
+              name="loans_ids"
+              id="loans_ids"
+            >
+            {% if loans_list|length > 0 %}
+              {% for loan in loans_list %}
+                <option 
+                  class="w-full"
+                  value="{{ loan.id }}"
+                  {% if saved_data.loan_id is not None and saved_data.loan_id == loan.id %}
+                    selected
+                  {% endif %}
+                >
+                  {{loan.user_name }} - {{ loan.book_title }}
+                </option>
+              {% endfor %}
+            {% else %}
+              <option 
+                class="w-full"
+                value="Nenhum Emprestimo Cadastrado"
+                {% if saved_data.loan_id is not None and saved_data.loan_id == loan.id %}
+                  selected
+                {% endif %}
+              >
+                Nenhum Emprestimo Cadastrado
+              </option>
+            {% endif %}
+            </select>
+            {% if error.loan_id is not None %}
+              <span class="text-sm text-red-500">{{ error.loan_id }}</span>
+            {% endif %}
+          </div>
+          <div class="w-full flex flex-col gap-2">
+            <label class="text-[#ADB5BD]" for="devolution_date"
+              >Data de Devolução</label
+            >
+            <input class="w-full h-12 px-2 rounded-md" 
+              type="date"
+              name="devolution_date" 
+              id="devolution_date" 
+              required
+              {% if saved_data.devolution_date is not None  %}
+                value="{{ saved_data.devolution_date }}"
+              {% endif %}
+            />
+            {% if error.devolution_date is not None or error.devolution_date != "" %}
+              <span class="text-sm text-red-500">{{ error.devolution_date }}</span>
+            {% endif %}
+          </div>
+          <div class="w-full flex flex-col gap-2">
+            <label class="text-[#ADB5BD]" for="observation"
+              >Observações(opicional)</label
+            >
+            <textarea
+              class="w-full h-32 px-1 rounded-md"
+              id="observation"
+              name="observation"
+              placeholder="Observações sobre o empréstimo..."
+            >{% if saved_data.observation is not None %}{{ saved_data.observation }}{% endif %}</textarea>
+          </div>
+          <button
+            class="w-1/2 h-12 flex justify-center items-center bg-violet-500 text-xl text-white font-semibold rounded-md transition-colors hover:bg-violet-600 disabled:bg-gray-600 disabled:cursor-not-allowed"
+            type="submit"
+          >
+            Cadastrar
+          </button>
+        </form>
+      </section>
+    </main>
+    <script>
+      const today = new Date().toconst today = new Date().toISOString().split("T")[0];
+
+      document.querySelector("input[type='date']").setAttribute("min", today);
+
+    </script>
+  </body>
+</html>
