@@ -1,6 +1,10 @@
+from datetime import date
+from uuid import UUID
+
 from django.forms.models import model_to_dict
 
-from .models import User, Book
+from .models import Book, Loan, User
+from .serializers import BookSerializer, UserSerializer
 
 
 def get_user_from_email(email: str):
@@ -70,6 +74,8 @@ def validate_book_camps(
 
     response = {"status": True, "error": {}}
 
+    loans_by_isbn = Loan.objects.filter(isbn=isbn)
+
     if int(total_quantity) <= 0:
         response["error"][
             "total_quantity"
@@ -103,6 +109,10 @@ def validate_book_camps(
         ] = "*O campo ano de publicação deve ser maior que zero!*"
         response["status"] = False
 
+    if len(loans_by_isbn) > 0:
+        response["error"]["isbn"] = "*Este ISBN ja foi utilizado!*"
+        response["status"] = False
+
     return response
 
 
@@ -113,3 +123,188 @@ def get_book_by_title(title: str):
         return model_to_dict(book)
     except Book.DoesNotExist:
         return None
+
+
+def get_many_books_by_title(title: str):
+    result = []
+
+    if title is None or title == "":
+        books = Book.objects.filter(is_active=True, available_quantity__gt=0)
+
+        for book in books:
+            result.append(model_to_dict(book))
+
+        return result
+
+    books = Book.objects.filter(
+        title__icontains=title, is_active=True, available_quantity__gt=0
+    )
+
+    for book in books:
+        result.append(model_to_dict(book))
+
+    return result
+
+
+def get_book_by_id(book_id: str):
+    try:
+        book = Book.objects.get(id=book_id)
+
+        return model_to_dict(book)
+    except Book.DoesNotExist:
+        return None
+
+
+def validate_gt_loan_date(inicial_date: str, final_date: str):
+    if str(final_date) < str(inicial_date):
+        return False
+    return True
+
+
+def get_loan_by_id(loan_id: str):
+    try:
+        loan = Loan.objects.get(id=loan_id)
+
+        return model_to_dict(loan)
+    except Loan.DoesNotExist:
+        return None
+
+
+def get_all_users():
+    users = User.objects.all()
+    user_serializer = UserSerializer(data=users, many=True)
+    user_serializer.is_valid()
+
+    return user_serializer.data
+
+
+def get_all_active_books():
+    books = Book.objects.filter(available_quantity__gt=0, is_active=True)
+    book_serializer = BookSerializer(data=books, many=True)
+    book_serializer.is_valid()
+
+    return book_serializer.data
+
+
+def validate_loan_regist_camps(
+    user: str, book: str, aproved_date: str, expected_devolution_date: str, status: str
+):
+    response = {"status": True, "error": {}}
+
+    loans_per_user = Loan.objects.filter(user=user, book=book, status=status)
+
+    if (status == "em aberto" or status == "pendente") and loans_per_user.exists():
+
+        response["error"][
+            "book"
+        ] = "*O usário ja tem um emprestimo para este livro em aberto!*"
+        response["status"] = False
+
+    if not validate_gt_loan_date(
+        date.today().strftime("%Y-%m-%d"), expected_devolution_date
+    ):
+        response["error"][
+            "expected_devolution_date"
+        ] = "*A data de devolução prevista deve ser maior que a data atual!*"
+        response["status"] = False
+
+    if not validate_gt_loan_date(aproved_date, expected_devolution_date):
+        response["error"][
+            "expected_devolution_date"
+        ] = "*A data de devolução prevista deve ser maior que a data de emprestimo!*"
+        response["status"] = False
+
+    if not validate_gt_loan_date(date.today().strftime("%Y-%m-%d"), aproved_date):
+        response["error"][
+            "aproved_date"
+        ] = "*A data de emprestimo deve ser maior ou igual a data atual!*"
+        response["status"] = False
+
+    return response
+
+
+def format_loans_to_tempalte(loans):
+    result = []
+
+    for item in loans:
+        formated_data = {}
+        # convete string para UUID
+        book_id = UUID(str(item.book))
+        current_book = Book.objects.get(id=book_id)
+
+        current_user = User.objects.get(email=item.user)
+
+        formated_data["id"] = item.id
+        formated_data["book_title"] = current_book.title
+        formated_data["aproved_date"] = item.aproved_date
+        formated_data["expected_devolution_date"] = item.expected_devolution_date
+        formated_data["devolution_date"] = item.devolution_date
+        formated_data["status"] = item.status
+        formated_data["user_name"] = current_user.complete_name
+
+        result.append(formated_data)
+
+    return result
+
+
+def get_loans_by_period(start_date: str, end_date: str, user: str = None):
+    if user is not None and user != "":
+        loans = Loan.objects.filter(
+            aproved_date__range=[start_date, end_date], user=user
+        )
+    else:
+        loans = Loan.objects.filter(aproved_date__range=[start_date, end_date])
+    return format_loans_to_tempalte(loans)
+
+
+def get_oppening_loans():
+    loans = Loan.objects.filter(status="em aberto")
+    return format_loans_to_tempalte(loans)
+
+
+def devolution_validate_camps(loan_id: str, devolution_date: str):
+    result = {"status": True, "error": {}}
+
+    if loan_id == "Nenhum Emprestimo Cadastrado":
+        result["error"]["loan_id"] = "*Emprestimo inexistente!*"
+        result["status"] = False
+
+        return result
+
+    loan = Loan.objects.get(id=loan_id)
+
+    if not validate_gt_loan_date(loan.aproved_date, devolution_date):
+        result["error"][
+            "devolution_date"
+        ] = "*A data de devolução deve ser maior que a data de emprestimo!*"
+        result["status"] = False
+
+    return result
+
+def formated_book_list(books, user: str):
+
+    result = []
+
+    user_query = User.objects.get(email=user)
+
+    for book in books:
+        formated_data = {}
+        formated_data["id"] = book["id"]
+        formated_data["title"] = book["title"]
+        formated_data["author"] = book["author"]
+        formated_data["isbn"] = book["isbn"]
+        formated_data["editor"] = book["editor"]
+        formated_data["year_publication"] = book["year_publication"]
+        formated_data["total_quantity"] = book["total_quantity"]
+        formated_data["available_quantity"] = book["available_quantity"]
+
+        loan_from_book = Loan.objects.filter(book=book["id"], user=user_query.id)
+
+        if len(loan_from_book) > 0:
+            formated_data["loan_status"] = loan_from_book[len(loan_from_book) - 1].status
+        else:
+            formated_data["loan_status"] = "disponivel"
+
+        result.append(formated_data)
+
+    return result

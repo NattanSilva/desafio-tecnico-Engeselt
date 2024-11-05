@@ -25,6 +25,12 @@ class BookGender(models.TextChoices):
     SEM_GENERO = "Sem Genero"
 
 
+class LoanStatus(models.TextChoices):
+    PENDENTE = "pendente"
+    EM_ABERTO = "em aberto"
+    CONCLUIDO = "concluído"
+
+
 class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     complete_name = models.CharField(max_length=200)
@@ -88,6 +94,24 @@ class Book(models.Model):
         if self.available_quantity is None:
             self.available_quantity = self.total_quantity
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.id}"
+
+
+class Loan(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.PROTECT, related_name="loans")
+    book = models.ForeignKey(Book, on_delete=models.PROTECT, related_name="loans")
+    expected_devolution_date = models.DateField(null=False)
+    aproved_date = models.DateField(null=True, blank=True)
+    devolution_date = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        choices=LoanStatus.choices, default=LoanStatus.PENDENTE
+    )
+    observation = models.CharField(max_length=250, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.id}"

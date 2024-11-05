@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     error,
-    gerency_loans,
+    regist_loans,
     home,
     inactive_book,
     loans_relatory,
@@ -13,8 +13,10 @@ from .views import (
     regist_devolution,
     regist_user,
     success,
+    user_loans_relatory,
+    admin_loans_relatory,
 )
-from .viewsets import AddressViewSet, LoginViewset, UserViewSet, BookViewSet
+from .viewsets import AddressViewSet, LoginViewset, UserViewSet, BookViewSet, LoanViewSet
 
 router = DefaultRouter()
 
@@ -23,6 +25,7 @@ router.register("users", UserViewSet)
 router.register("login", LoginViewset, basename="login")
 router.register("address", AddressViewSet, basename="address")
 router.register("books", BookViewSet, basename="book")
+router.register("loans", LoanViewSet, basename="loan")
 
 urlpatterns = [
     path("api/", include(router.urls)),
@@ -32,9 +35,11 @@ urlpatterns = [
     path("regist_user/", regist_user, name="regist_user"),
     path("regist_book/", regist_book, name="regist_book"),
     path("inactive_book/", inactive_book, name="inactive_book"),
-    path("gerency_loans/", gerency_loans, name="gerency_loans"),
+    path("regist_loans/", regist_loans, name="regist_loans"),
     path("regist_devolution/", regist_devolution, name="regist_devolution"),
     path("loans_relatory/", loans_relatory, name="loans_relatory"),
     path("success/", success, name="success"),
     path("error/", error, name="error"),
+    path("user_loans_relatory/", user_loans_relatory, name="user_loans_relatory"),
+    path("admin_loans_relatory/", admin_loans_relatory, name="admin_loans_relatory"),
 ]

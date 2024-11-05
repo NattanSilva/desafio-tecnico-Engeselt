@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      * {
+        font-family: 'Inter', serif;
+      }
+
+      html {
+        background-color: #212529;
+      }
+    </style>
+    <title>Genius Lab</title>
+  </head>
+  <body>
+    <header
+      class="w-full h-20 flex items-center justify-center top-0 fixed z-10 bg-[#191C1F]"
+    >
+      <nav class="w-4/5 flex justify-between">
+        <div class="flex gap-2 justify-center items-center">
+          <div
+            class="w-10 h-10 flex items-center justify-center rounded-full bg-violet-500 text-white"
+          >
+            <p class="text-2xl font-bold">{{ icon }}</p>
+          </div>
+          <p class="text-white font-semibold text-xl">
+            {{ user.complete_name }}
+          </p>
+        </div>
+        <form action="{% url 'home' %}" method="get">
+          <button
+            class="rounded-md px-4 py-2 bg-violet-500 text-white font-semibold"
+            type="submit"
+          >
+            Home
+          </button>
+        </form>
+      </nav>
+    </header>
+    <main class="w-full h-auto flex flex-col justify-center items-center gap-4">
+      <section class="w-4/5 mt-32 flex flex-col items-center gap-6">
+        <div class="py-2 px-4 rounded-md flex items-center gap-4 bg-white">
+          <form class="flex items-center gap-4 " action="{% url 'admin_loans_relatory' %}" method="post">
+            {% csrf_token %}
+            <div class="py-2 px-1 rounded-md items-center justify-center gap-2 bg-gray-200">
+              <label class="text-sm text-gray-600" for="initial_date">Data Inicial:</label>
+              <input 
+                class="rounded-md text-sm bg-transparent border-none outline-none" 
+                type="date" 
+                name="initial_date" 
+                id="initial_date"
+                required
+                {% if saved_data.initial_date is not None and saved_data.initial_date != "" %}
+                  value="{{ saved_data.initial_date }}"
+                {% endif %}
+              >
+            </div>
+            <span> -> </span>
+            <div class="py-2 px-1 rounded-md items-center justify-center gap-2 bg-gray-200">
+              <label class="text-sm text-gray-600" for="final_date">Data Final:</label>
+              <input 
+                class="rounded-md text-sm bg-transparent border-none outline-none" 
+                type="date" 
+                name="final_date" 
+                id="final_date"
+                required
+                {% if saved_data.final_date is not None and saved_data.final_date != "" %}
+                  value="{{ saved_data.final_date }}"
+                {% endif %}
+              >
+            </div>
+            <button
+              class="rounded-md px-4 py-2 bg-violet-500 text-white font-semibold"
+              type="submit"
+            >
+              Buscar
+            </button>
+          </form>
+          <form  action="{% url 'admin_loans_relatory' %}" method="get">
+            <button
+              class="rounded-md px-4 py-2 bg-violet-500 text-white font-semibold"
+              type="submit"
+            >
+              Resetar
+            </button>
+          </form>
+        </div>
+        <div class="w-full flex items-center mt-8">
+          <h3 class="text-2xl text-white font-bold">
+            📚 Histórico de Emprestimos
+          </h3>
+        </div>
+        <ul class="w-full flex justify-around flex-wrap">
+          {% if list is not None and list|length > 0 %}
+            {% for item in list %}
+              <li class="w-[32%] flex flex-col gap-2 mb-4 bg-[#191C1F] rounded-md p-4 text-white">
+                <p class="text-ellipsis">Usuário: {{ item.user_name }}</p>
+                <p class="text-ellipsis">Titulo: {{ item.book_title }}</p>
+                <p class="text-ellipsis">
+                  Data de emprestimo: {% if item.aproved_date is None %} Não definido {% else %} {{ item.aproved_date }} {% endif %}
+                </p>
+                <p class="text-ellipsis">
+                  Data Limite de devolução: {% if item.expected_devolution_date is None %} Não definido {% else %} {{ item.expected_devolution_date }} {% endif %}
+                </p>
+                <p class="text-ellipsis">
+                  Data de devolução: {% if item.devolution_date is None %} Não definido {% else %} {{ item.devolution_date }} {% endif %}
+                </p>
+                {% if item.status == 'em aberto' %}
+                  <p class="text-ellipsis">Status: <span class="text-yellow-500">Em aberto</span></p>
+                {% elif item.status == 'pendente' %}
+                  <p class="text-ellipsis">Status: <span class="text-gray-400">Pendente</span></p>
+                {% else %}
+                  <p class="text-ellipsis">Status: <span class="text-green-500">Concluído</span></p>
+                {% endif %}
+              </li>
+            {% endfor %}
+          {% else %}
+            <li class="w-full h-48 flex items-center justify-center">
+              <span class="text-xl text-white font-semibold">📕Nenhum empréstimo relizado no periodo...</span>
+            </li>
+          {% endif %}
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>
