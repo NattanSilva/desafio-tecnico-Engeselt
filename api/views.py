@@ -127,7 +127,7 @@ def home(request):
             )
 
             filtered_books = get_many_books_by_title(book_name)
-            formated_filtered_books = formated_book_list(filtered_books, user["id"])
+            formated_filtered_books = formated_book_list(filtered_books, user["email"])
 
             if filtered_books is not None:
                 return render(

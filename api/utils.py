@@ -74,7 +74,14 @@ def validate_book_camps(
 
     response = {"status": True, "error": {}}
 
-    loans_by_isbn = Loan.objects.filter(isbn=isbn)
+    books_by_isbn = Book.objects.filter(isbn=isbn)
+    print(books_by_isbn)
+
+    if int(available_quantity) > int(total_quantity):
+        response["error"][
+            "available_quantity"
+        ] = "*O campo quantidade disponivel não pode ser maior que a quantidade total!*"
+        response["status"] = False
 
     if int(total_quantity) <= 0:
         response["error"][
@@ -109,7 +116,7 @@ def validate_book_camps(
         ] = "*O campo ano de publicação deve ser maior que zero!*"
         response["status"] = False
 
-    if len(loans_by_isbn) > 0:
+    if len(books_by_isbn) > 0:
         response["error"]["isbn"] = "*Este ISBN ja foi utilizado!*"
         response["status"] = False
 
@@ -132,7 +139,7 @@ def get_many_books_by_title(title: str):
         books = Book.objects.filter(is_active=True, available_quantity__gt=0)
 
         for book in books:
-            result.append(model_to_dict(book))
+            result.append(book)
 
         return result
 
@@ -141,7 +148,7 @@ def get_many_books_by_title(title: str):
     )
 
     for book in books:
-        result.append(model_to_dict(book))
+        result.append(book)
 
     return result
 
@@ -282,29 +289,32 @@ def devolution_validate_camps(loan_id: str, devolution_date: str):
     return result
 
 def formated_book_list(books, user: str):
-
     result = []
 
     user_query = User.objects.get(email=user)
 
-    for book in books:
-        formated_data = {}
-        formated_data["id"] = book["id"]
-        formated_data["title"] = book["title"]
-        formated_data["author"] = book["author"]
-        formated_data["isbn"] = book["isbn"]
-        formated_data["editor"] = book["editor"]
-        formated_data["year_publication"] = book["year_publication"]
-        formated_data["total_quantity"] = book["total_quantity"]
-        formated_data["available_quantity"] = book["available_quantity"]
+    if len(books) > 0:
+        book_serializer = BookSerializer(data=books, many=True)
+        book_serializer.is_valid()
+        
+        for book in book_serializer.data:
+            formated_data = {}
+            formated_data["id"] = book["id"]
+            formated_data["title"] = book["title"]
+            formated_data["author"] = book["author"]
+            formated_data["isbn"] = book["isbn"]
+            formated_data["editor"] = book["editor"]
+            formated_data["year_publication"] = book["year_publication"]
+            formated_data["total_quantity"] = book["total_quantity"]
+            formated_data["available_quantity"] = book["available_quantity"]
 
-        loan_from_book = Loan.objects.filter(book=book["id"], user=user_query.id)
+            loan_from_book = Loan.objects.filter(book=book["id"], user=user_query.id)
 
-        if len(loan_from_book) > 0:
-            formated_data["loan_status"] = loan_from_book[len(loan_from_book) - 1].status
-        else:
-            formated_data["loan_status"] = "disponivel"
+            if len(loan_from_book) > 0:
+                formated_data["loan_status"] = loan_from_book[len(loan_from_book) - 1].status
+            else:
+                formated_data["loan_status"] = "disponivel"
 
-        result.append(formated_data)
+            result.append(formated_data)
 
     return result
